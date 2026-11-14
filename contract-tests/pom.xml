@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.github.mighil31</groupId>
+        <artifactId>kitchensink-parent</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>contract-tests</artifactId>
+    <name>kitchensink contract tests</name>
+    <description>
+        Black-box HTTP parity suite. Captures the legacy REST API's core behaviour and
+        runs unchanged against the migrated app; only the base URL / credentials change.
+    </description>
+
+    <properties>
+        <!-- Target under test. Override: mvn verify -Dcontract.baseUrl=http://localhost:8081/rest -->
+        <contract.baseUrl>http://localhost:8080/kitchensink/rest</contract.baseUrl>
+        <!-- Optional HTTP Basic user (new app). Password comes from env CONTRACT_PASSWORD only. -->
+        <contract.user></contract.user>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- *IT classes run in the integration-test phase (needs a running target);
+                 plain `mvn test` never touches the network. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <contract.baseUrl>${contract.baseUrl}</contract.baseUrl>
+                        <contract.user>${contract.user}</contract.user>
+                    </systemPropertyVariables>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
