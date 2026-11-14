@@ -50,6 +50,15 @@ class CreateMemberIT extends ContractTest {
                 .satisfies(listed -> assertSameMember(listed, member));
     }
 
+    @Test
+    void nonJsonContentType_isRejectedWith415() {
+        given(api)
+                .contentType("text/plain")
+                .body("{}")
+                .when().post("/members")
+                .then().statusCode(415);
+    }
+
     /** POSTs the member, asserts it was created and returns its id. */
     private String create(Map<String, Object> member) {
         Response response = given(api)
