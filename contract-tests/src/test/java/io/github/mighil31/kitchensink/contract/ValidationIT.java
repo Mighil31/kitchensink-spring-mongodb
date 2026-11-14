@@ -5,11 +5,14 @@ import io.github.mighil31.kitchensink.contract.support.TestMembers;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvFileSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
@@ -25,6 +28,11 @@ class ValidationIT extends ContractTest {
     private static final String EMAIL_FORMAT = "must be a well-formed email address";
     private static final String PHONE_SIZE = "size must be between 10 and 12";
     private static final String PHONE_DIGITS = "numeric value out of bounds (<12 digits>.<0 digits> expected)";
+
+    private static final Map<String, String> MESSAGES = Map.of(
+            "NAME_SIZE", NAME_SIZE, "NAME_PATTERN", NAME_PATTERN,
+            "EMAIL_EMPTY", EMAIL_EMPTY, "EMAIL_FORMAT", EMAIL_FORMAT,
+            "PHONE_SIZE", PHONE_SIZE, "PHONE_DIGITS", PHONE_DIGITS);
 
     @Test
     void missingFields_areAllReported() {
@@ -92,6 +100,20 @@ class ValidationIT extends ContractTest {
     @ValueSource(strings = {"1234567890", "123456789012"})
     void boundaryPhone_isAccepted(String phone) {
         postExpectingCreated(memberWith("phoneNumber", phone));
+    }
+
+    @ParameterizedTest(name = "{0} {1} -> {2} ({4})")
+    @CsvFileSource(resources = "/llm-generated-validation-cases.csv")
+    void generatedCase(String field, String value, String expected, String messageKeys, String probes) {
+        String input = value.replace("{rand}", TestMembers.randomLetters(10));
+        if (expected.equals("created")) {
+            postExpectingCreated(memberWith(field, input));
+        } else {
+            Set<String> allowed = Arrays.stream(messageKeys.split("\\|"))
+                    .map(MESSAGES::get)
+                    .collect(Collectors.toSet());
+            assertOnlyFieldRejected(field, input, allowed);
+        }
     }
 
     private void assertOnlyFieldRejected(String field, String value, Set<String> allowedMessages) {
