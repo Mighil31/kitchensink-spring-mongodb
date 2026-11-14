@@ -1,25 +1,49 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-failsafe-plugin/xsd/failsafe-test-report.xsd" version="3.0.2" name="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.124" tests="16" errors="0" skipped="0" failures="0" flakes="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-failsafe-plugin/xsd/failsafe-test-report.xsd" version="3.0.2" name="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.22" tests="40" errors="0" skipped="0" failures="0" flakes="0">
   <properties>
     <property name="contract.baseUrl" value="http://localhost:8080/kitchensink/rest" />
     <property name="contract.user" value="" />
     <property name="java.version" value="21.0.13" />
     <property name="contract.format" value="legacy" />
     </properties>
-  <testcase name="boundaryPhone_isAccepted(String) phone &quot;1234567890&quot; -&gt; created" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.009" />
-  <testcase name="boundaryPhone_isAccepted(String) phone &quot;123456789012&quot; -&gt; created" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.007" />
-  <testcase name="invalidName_isRejected(String, Set) name &quot;&quot; -&gt; 400" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.008" />
+  <testcase name="boundaryPhone_isAccepted(String) phone &quot;1234567890&quot; -&gt; created" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.012" />
+  <testcase name="boundaryPhone_isAccepted(String) phone &quot;123456789012&quot; -&gt; created" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.006" />
+  <testcase name="invalidName_isRejected(String, Set) name &quot;&quot; -&gt; 400" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.007" />
   <testcase name="invalidName_isRejected(String, Set) name &quot;abcdefghijklmnopqrstuvwxyz&quot; -&gt; 400" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.005" />
   <testcase name="invalidName_isRejected(String, Set) name &quot;R2D2&quot; -&gt; 400" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.005" />
-  <testcase name="invalidPhone_isRejected(String, Set) phone &quot;123456789&quot; -&gt; 400" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.006" />
+  <testcase name="invalidPhone_isRejected(String, Set) phone &quot;123456789&quot; -&gt; 400" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.005" />
   <testcase name="invalidPhone_isRejected(String, Set) phone &quot;12345abcde&quot; -&gt; 400" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.004" />
-  <testcase name="invalidPhone_isRejected(String, Set) phone &quot;1234567890123&quot; -&gt; 400" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.006" />
-  <testcase name="invalidPhone_isRejected(String, Set) phone &quot;&quot; -&gt; 400" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.006" />
-  <testcase name="unusualEmail_isAccepted" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.007" />
-  <testcase name="invalidEmail_isRejected(String, Set) email &quot;&quot; -&gt; 400" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.005" />
-  <testcase name="invalidEmail_isRejected(String, Set) email &quot;not-an-email&quot; -&gt; 400" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.005" />
-  <testcase name="missingFields_areAllReported" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.012" />
-  <testcase name="boundaryName_isAccepted(String) name &quot;a&quot; -&gt; created" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.007" />
-  <testcase name="boundaryName_isAccepted(String) name &quot;abcdefghijklmnopqrstuvwxy&quot; -&gt; created" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.007" />
-  <testcase name="boundaryName_isAccepted(String) name &quot;Mary-Jane O'Neil&quot; -&gt; created" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.007" />
+  <testcase name="invalidPhone_isRejected(String, Set) phone &quot;1234567890123&quot; -&gt; 400" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.003" />
+  <testcase name="invalidPhone_isRejected(String, Set) phone &quot;&quot; -&gt; 400" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.002" />
+  <testcase name="unusualEmail_isAccepted" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.004" />
+  <testcase name="invalidEmail_isRejected(String, Set) email &quot;&quot; -&gt; 400" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.004" />
+  <testcase name="invalidEmail_isRejected(String, Set) email &quot;not-an-email&quot; -&gt; 400" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.003" />
+  <testcase name="generatedCase(String, String, String, String, String) &quot;name&quot; &quot;Zoë Ångström&quot; -&gt; &quot;created&quot; (&quot;non-ASCII letters&quot;)" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.007" />
+  <testcase name="generatedCase(String, String, String, String, String) &quot;name&quot; &quot;Ana١&quot; -&gt; &quot;created&quot; (&quot;Arabic-Indic digit: the pattern only bans ASCII 0-9 (gap B19)&quot;)" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.006" />
+  <testcase name="generatedCase(String, String, String, String, String) &quot;name&quot; &quot;Ana１&quot; -&gt; &quot;created&quot; (&quot;fullwidth digit (gap B19)&quot;)" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.006" />
+  <testcase name="generatedCase(String, String, String, String, String) &quot;name&quot; &quot;😀😀😀😀😀😀😀😀😀😀😀😀&quot; -&gt; &quot;created&quot; (&quot;12 emoji = 24 UTF-16 chars&quot;)" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.006" />
+  <testcase name="generatedCase(String, String, String, String, String) &quot;name&quot; &quot;😀😀😀😀😀😀😀😀😀😀😀😀😀&quot; -&gt; &quot;400&quot; (&quot;13 emoji = 26 UTF-16 chars: size counts chars not symbols&quot;)" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.005" />
+  <testcase name="generatedCase(String, String, String, String, String) &quot;email&quot; &quot;{rand}@[127.0.0.1]&quot; -&gt; &quot;created&quot; (&quot;IP-literal domain&quot;)" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.005" />
+  <testcase name="generatedCase(String, String, String, String, String) &quot;email&quot; &quot;\&quot;{rand} x\&quot;@example.com&quot; -&gt; &quot;created&quot; (&quot;quoted local part with a space&quot;)" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.004" />
+  <testcase name="generatedCase(String, String, String, String, String) &quot;email&quot; &quot;üser{rand}@exämple.com&quot; -&gt; &quot;created&quot; (&quot;non-ASCII local part and domain&quot;)" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.004" />
+  <testcase name="generatedCase(String, String, String, String, String) &quot;email&quot; &quot;{rand} x@example.com&quot; -&gt; &quot;400&quot; (&quot;unquoted space&quot;)" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.004" />
+  <testcase name="generatedCase(String, String, String, String, String) &quot;email&quot; &quot;{rand}@@example.com&quot; -&gt; &quot;400&quot; (&quot;double @&quot;)" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.004" />
+  <testcase name="generatedCase(String, String, String, String, String) &quot;email&quot; &quot;{rand}.@example.com&quot; -&gt; &quot;400&quot; (&quot;local part ends with a dot&quot;)" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.003" />
+  <testcase name="generatedCase(String, String, String, String, String) &quot;email&quot; &quot; {rand}@example.com&quot; -&gt; &quot;400&quot; (&quot;leading space&quot;)" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.004" />
+  <testcase name="generatedCase(String, String, String, String, String) &quot;email&quot; &quot;{rand}@example.com.&quot; -&gt; &quot;400&quot; (&quot;domain ends with a dot&quot;)" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.003" />
+  <testcase name="generatedCase(String, String, String, String, String) &quot;email&quot; &quot;{rand}@-example.com&quot; -&gt; &quot;400&quot; (&quot;domain label starts with a hyphen&quot;)" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.003" />
+  <testcase name="generatedCase(String, String, String, String, String) &quot;email&quot; &quot;aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@example.com&quot; -&gt; &quot;400&quot; (&quot;65-char local part (limit is 64)&quot;)" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.003" />
+  <testcase name="generatedCase(String, String, String, String, String) &quot;phoneNumber&quot; &quot;+123456789&quot; -&gt; &quot;created&quot; (&quot;leading plus parses as a number (gap B18)&quot;)" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.005" />
+  <testcase name="generatedCase(String, String, String, String, String) &quot;phoneNumber&quot; &quot;-123456789&quot; -&gt; &quot;created&quot; (&quot;leading minus parses as a number (gap B18)&quot;)" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.005" />
+  <testcase name="generatedCase(String, String, String, String, String) &quot;phoneNumber&quot; &quot;0000000000&quot; -&gt; &quot;created&quot; (&quot;all zeros&quot;)" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.004" />
+  <testcase name="generatedCase(String, String, String, String, String) &quot;phoneNumber&quot; &quot;1.23456789E9&quot; -&gt; &quot;created&quot; (&quot;scientific notation is a whole number (gap B18)&quot;)" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.004" />
+  <testcase name="generatedCase(String, String, String, String, String) &quot;phoneNumber&quot; &quot;١٢٣٤٥٦٧٨٩٠&quot; -&gt; &quot;created&quot; (&quot;Arabic-Indic digits (gap B18)&quot;)" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.004" />
+  <testcase name="generatedCase(String, String, String, String, String) &quot;phoneNumber&quot; &quot;1234567890.0&quot; -&gt; &quot;400&quot; (&quot;decimal fraction&quot;)" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.003" />
+  <testcase name="generatedCase(String, String, String, String, String) &quot;phoneNumber&quot; &quot;12345 67890&quot; -&gt; &quot;400&quot; (&quot;space inside&quot;)" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.003" />
+  <testcase name="generatedCase(String, String, String, String, String) &quot;phoneNumber&quot; &quot; 1234567890&quot; -&gt; &quot;400&quot; (&quot;leading space&quot;)" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.003" />
+  <testcase name="generatedCase(String, String, String, String, String) &quot;phoneNumber&quot; &quot;+123456789012&quot; -&gt; &quot;400&quot; (&quot;13 chars but only 12 digits&quot;)" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.002" />
+  <testcase name="missingFields_areAllReported" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.01" />
+  <testcase name="boundaryName_isAccepted(String) name &quot;a&quot; -&gt; created" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.005" />
+  <testcase name="boundaryName_isAccepted(String) name &quot;abcdefghijklmnopqrstuvwxy&quot; -&gt; created" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.004" />
+  <testcase name="boundaryName_isAccepted(String) name &quot;Mary-Jane O'Neil&quot; -&gt; created" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.005" />
 </testsuite>
