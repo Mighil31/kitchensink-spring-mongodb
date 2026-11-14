@@ -103,6 +103,109 @@ def save_contract(args):
     print(f"Saved {len(files)} report files to {os.path.relpath(dest, ROOT)}")
 
 
+# ---------- performance (Gatling console summaries) ----------
+
+SIMULATIONS = ("RegistrationSimulation", "LookupSimulation", "MixedSloSimulation")
+GATLING_ROWS = {
+    "request count": "requests",
+    "response time 50th percentile (ms)": "p50Ms",
+    "response time 95th percentile (ms)": "p95Ms",
+    "response time 99th percentile (ms)": "p99Ms",
+    "mean throughput (rps)": "rps",
+}
+
+
+def parse_gatling_log(path):
+    """Read the '---- Global Information' block Gatling prints at the end of a run."""
+    with open(path, encoding="utf-8", errors="replace") as f:
+        text = f.read()
+    start = text.rfind("---- Global Information")
+    if start < 0:
+        raise SystemExit(f"No Gatling summary in {path}")
+    stats, ko = {}, 0
+    for line in text[start:].splitlines():
+        if not line.startswith(">"):
+            continue
+        cells = [c.strip() for c in line[1:].split("|")]
+        if len(cells) < 4 or cells[0] not in GATLING_ROWS:
+            continue
+        total = cells[1].replace(",", "")
+        stats[GATLING_ROWS[cells[0]]] = float(total) if total not in ("-", "") else None
+        if cells[0] == "request count":
+            ko = int(cells[3].replace(",", "")) if cells[3] not in ("-", "") else 0
+    if "requests" not in stats:
+        raise SystemExit(f"Could not read the request count in {path}")
+    stats["requests"] = int(stats["requests"])
+    stats["errorRatePct"] = round(100.0 * ko / stats["requests"], 2) if stats["requests"] else 0.0
+    return stats
+
+
+def within(stats, p95, errors):
+    return stats.get("p95Ms") is not None and stats["p95Ms"] <= p95 and stats["errorRatePct"] <= errors
+
+
+def check_level(args):
+    stats = parse_gatling_log(args.log)
+    ok = within(stats, args.p95, args.errors)
+    print(f"  p95 {fmt(stats.get('p95Ms'), ' ms')}, errors {fmt(stats['errorRatePct'], '%')}: {'ok' if ok else 'BROKEN'}")
+    raise SystemExit(0 if ok else 1)
+
+
+def median(values):
+    values = sorted(v for v in values if v is not None)
+    if not values:
+        return None
+    mid = len(values) // 2
+    return values[mid] if len(values) % 2 else (values[mid - 1] + values[mid]) / 2
+
+
+def save_perf(args):
+    results = args.results or os.path.join(ROOT, "perf", "results", args.name)
+    simulations = []
+    for sim in SIMULATIONS:
+        runs = [parse_gatling_log(p) for p in sorted(glob.glob(os.path.join(results, f"{sim}-run*.log")))]
+        if not runs:
+            continue
+        merged = {"name": sim, "runs": len(runs)}
+        for key in ("rps", "requests", "p50Ms", "p95Ms", "p99Ms", "errorRatePct"):
+            merged[key] = median([r.get(key) for r in runs])
+        simulations.append(merged)
+    if not simulations:
+        raise SystemExit(f"No measured runs in {results}; run perf/run.sh {args.name} first")
+
+    steps = []
+    for path in glob.glob(os.path.join(results, "knee-*.log")):
+        rate = int(re.search(r"knee-(\d+)\.log$", path)[1])
+        stats = parse_gatling_log(path)
+        steps.append({"rate": rate, "p95Ms": stats.get("p95Ms"), "errorRatePct": stats["errorRatePct"],
+                      "ok": within(stats, args.p95, args.errors)})
+    steps.sort(key=lambda s: s["rate"])
+    knee = None
+    for step in steps:
+        if not step["ok"]:
+            break
+        knee = step["rate"]
+
+    path = os.path.join(DATA, f"perf-{args.name}.json")
+    previous = read_json(path) or {}
+    data = {
+        "label": args.label,
+        "date": datetime.date.today().isoformat(),
+        "simulations": simulations,
+        "kneeRps": knee,
+        "kneeBroken": next((s["rate"] for s in steps if not s["ok"]), None),
+        "kneeCriteria": {"p95Ms": args.p95, "errorRatePct": args.errors},
+        "kneeSteps": steps,
+    }
+    if previous.get("slo"):
+        data["slo"] = previous["slo"]  # set by hand once the SLO is decided; keep it
+    os.makedirs(DATA, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+        f.write("\n")
+    print(f"Wrote {os.path.relpath(path, ROOT)} ({len(simulations)} simulations, knee {knee} req/s)")
+
+
 # ---------- loading ----------
 
 def outcome(case):
@@ -291,10 +394,25 @@ def perf_section(perf):
         '<th>p50 ms</th><th>p95 ms</th><th>p99 ms</th><th>Errors</th><th>Requests</th></tr></thead><tbody>'
         + "".join(rows) + "</tbody></table></div>")
 
-    knees = [(title, (perf.get(key) or {}).get("kneeRps")) for key, title in TARGETS]
-    if any(k for _, k in knees):
-        parts.append("<p><strong>Knee</strong> (rate where the SLO breaks): "
-                     + " · ".join(f"{esc(t)} {fmt(k, ' req/s')}" for t, k in knees) + "</p>")
+    knee_rows = []
+    for key, title in TARGETS:
+        run = perf.get(key) or {}
+        if not run.get("kneeSteps"):
+            continue
+        criteria = run.get("kneeCriteria", {})
+        steps = " ".join(
+            badge("pass" if s["ok"] else "fail", f"{s['rate']}: p95 {fmt(s['p95Ms'])} ms, {fmt(s['errorRatePct'])}% err")
+            for s in run["kneeSteps"])
+        held = fmt(run.get("kneeRps"), " req/s") if run.get("kneeRps") else "below the first level"
+        broke = f", broke at {run['kneeBroken']} req/s" if run.get("kneeBroken") else ", never broke in the tested range"
+        knee_rows.append(
+            f"<tr><td>{esc(title)}</td><td><strong>{held}</strong>{broke}</td><td>{steps}</td></tr>")
+        knee_criteria = criteria
+    if knee_rows:
+        parts.append(
+            f'<h3>Knee: highest load that still meets p95 &le; {fmt(knee_criteria.get("p95Ms"), " ms")} '
+            f'and errors &le; {fmt(knee_criteria.get("errorRatePct"), "%")} (MixedSloSimulation, 60 s per level)</h3>'
+            '<div class="scroll"><table class="perf"><tbody>' + "".join(knee_rows) + "</tbody></table></div>")
     for key, title in TARGETS:
         verdict = slo_verdict(perf.get(key) or {})
         if verdict is not None:
@@ -444,6 +562,20 @@ def main():
     save.add_argument("--label", required=True, help="Human-readable app name and version")
     save.add_argument("--reports", default=REPORTS)
     save.set_defaults(func=save_contract)
+
+    perf = sub.add_parser("save-perf", help="Summarize perf/run.sh logs into data/perf-<name>.json")
+    perf.add_argument("--name", required=True, choices=[k for k, _ in TARGETS])
+    perf.add_argument("--label", required=True)
+    perf.add_argument("--results", help="Log folder (default perf/results/<name>)")
+    perf.add_argument("--p95", type=float, default=300, help="Knee criterion: p95 limit in ms")
+    perf.add_argument("--errors", type=float, default=1.0, help="Knee criterion: error-rate limit in percent")
+    perf.set_defaults(func=save_perf)
+
+    level = sub.add_parser("check-level", help="Exit 0 if a Gatling log meets the limits (used by perf/run.sh)")
+    level.add_argument("log")
+    level.add_argument("--p95", type=float, required=True)
+    level.add_argument("--errors", type=float, required=True)
+    level.set_defaults(func=check_level)
 
     bld = sub.add_parser("build", help="Render the scorecard page")
     bld.add_argument("--data", default=DATA)
