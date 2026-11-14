@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-failsafe-plugin/xsd/failsafe-test-report.xsd" version="3.0.2" name="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.124" tests="16" errors="0" skipped="0" failures="0" flakes="0">
+  <properties>
+    <property name="contract.baseUrl" value="http://localhost:8080/kitchensink/rest" />
+    <property name="contract.user" value="" />
+    <property name="java.version" value="21.0.13" />
+    <property name="contract.format" value="legacy" />
+    </properties>
+  <testcase name="boundaryPhone_isAccepted(String) phone &quot;1234567890&quot; -&gt; created" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.009" />
+  <testcase name="boundaryPhone_isAccepted(String) phone &quot;123456789012&quot; -&gt; created" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.007" />
+  <testcase name="invalidName_isRejected(String, Set) name &quot;&quot; -&gt; 400" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.008" />
+  <testcase name="invalidName_isRejected(String, Set) name &quot;abcdefghijklmnopqrstuvwxyz&quot; -&gt; 400" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.005" />
+  <testcase name="invalidName_isRejected(String, Set) name &quot;R2D2&quot; -&gt; 400" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.005" />
+  <testcase name="invalidPhone_isRejected(String, Set) phone &quot;123456789&quot; -&gt; 400" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.006" />
+  <testcase name="invalidPhone_isRejected(String, Set) phone &quot;12345abcde&quot; -&gt; 400" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.004" />
+  <testcase name="invalidPhone_isRejected(String, Set) phone &quot;1234567890123&quot; -&gt; 400" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.006" />
+  <testcase name="invalidPhone_isRejected(String, Set) phone &quot;&quot; -&gt; 400" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.006" />
+  <testcase name="unusualEmail_isAccepted" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.007" />
+  <testcase name="invalidEmail_isRejected(String, Set) email &quot;&quot; -&gt; 400" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.005" />
+  <testcase name="invalidEmail_isRejected(String, Set) email &quot;not-an-email&quot; -&gt; 400" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.005" />
+  <testcase name="missingFields_areAllReported" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.012" />
+  <testcase name="boundaryName_isAccepted(String) name &quot;a&quot; -&gt; created" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.007" />
+  <testcase name="boundaryName_isAccepted(String) name &quot;abcdefghijklmnopqrstuvwxy&quot; -&gt; created" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.007" />
+  <testcase name="boundaryName_isAccepted(String) name &quot;Mary-Jane O'Neil&quot; -&gt; created" classname="io.github.mighil31.kitchensink.contract.ValidationIT" time="0.007" />
+</testsuite>

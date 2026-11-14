@@ -1,0 +1,130 @@
+{
+  "items": [
+    {
+      "id": "ADR-2",
+      "change": "Member id format",
+      "legacy": "Sequential number (0, 1, 2…)",
+      "new": "24-hex MongoDB ObjectId",
+      "source": "Design Decisions §2",
+      "status": "decided",
+      "verifiedBy": null
+    },
+    {
+      "id": "A1",
+      "change": "Successful create response",
+      "legacy": "200, empty body, no Location",
+      "new": "201 + Location header + member body",
+      "source": "Gap Analysis A1",
+      "status": "decided",
+      "verifiedBy": null
+    },
+    {
+      "id": "ADR-3",
+      "change": "Error response body",
+      "legacy": "Different ad-hoc shape per error; empty 404",
+      "new": "RFC 9457 ProblemDetail with an errors map",
+      "source": "Design Decisions §3",
+      "status": "decided",
+      "verifiedBy": null
+    },
+    {
+      "id": "ADR-6",
+      "change": "API authentication",
+      "legacy": "None",
+      "new": "HTTP Basic on all of /rest/**; 401 ProblemDetail without credentials",
+      "source": "Design Decisions §8",
+      "status": "decided",
+      "verifiedBy": null
+    },
+    {
+      "id": "B1",
+      "change": "Concurrent registrations with the same email",
+      "legacy": "One 200; losers get 409 or 400 with transaction-manager text",
+      "new": "One 201; every other request 409",
+      "source": "Gap Analysis B1",
+      "status": "decided",
+      "verifiedBy": null
+    },
+    {
+      "id": "B2",
+      "change": "Email uniqueness ignores case",
+      "legacy": "JOHN@x.com accepted next to john@x.com",
+      "new": "409 Conflict",
+      "source": "Gap Analysis B2",
+      "status": "decided",
+      "verifiedBy": null
+    },
+    {
+      "id": "B3",
+      "change": "Blank name",
+      "legacy": "\"   \" accepted (200)",
+      "new": "400 validation error",
+      "source": "Gap Analysis B3",
+      "status": "decided",
+      "verifiedBy": null
+    },
+    {
+      "id": "B5, B17",
+      "change": "Malformed JSON or JSON array body",
+      "legacy": "500 with RESTEasy / JSON-B internals",
+      "new": "400 ProblemDetail, no internals",
+      "source": "Gap Analysis B5, B17",
+      "status": "decided",
+      "verifiedBy": null
+    },
+    {
+      "id": "B6",
+      "change": "Null request body",
+      "legacy": "400 with Hibernate Validator code HV000116",
+      "new": "400 ProblemDetail, no internals",
+      "source": "Gap Analysis B6",
+      "status": "decided",
+      "verifiedBy": null
+    },
+    {
+      "id": "B4",
+      "change": "Client-supplied id in the request body",
+      "legacy": "400 with Hibernate 'detached entity' message",
+      "new": "Request DTO has no id; exact response not decided",
+      "source": "Gap Analysis B4",
+      "status": "open",
+      "verifiedBy": null
+    },
+    {
+      "id": "B10",
+      "change": "Unknown JSON fields",
+      "legacy": "Silently ignored (200)",
+      "new": "Reject or keep ignoring: not decided",
+      "source": "Gap Analysis B10",
+      "status": "open",
+      "verifiedBy": null
+    },
+    {
+      "id": "B11",
+      "change": "Name rule vs its message",
+      "legacy": "Only digits rejected; message says 'letters and spaces'",
+      "new": "Not decided",
+      "source": "Gap Analysis B11",
+      "status": "open",
+      "verifiedBy": null
+    },
+    {
+      "id": "B16",
+      "change": "Field breaking two rules",
+      "legacy": "One message, chosen at random",
+      "new": "Not decided (all messages, or a fixed order)",
+      "source": "Gap Analysis B16",
+      "status": "open",
+      "verifiedBy": null
+    },
+    {
+      "id": "A3",
+      "change": "Member list pagination",
+      "legacy": "Whole list, unbounded",
+      "new": "Not decided",
+      "source": "Gap Analysis A3",
+      "status": "open",
+      "verifiedBy": null
+    }
+  ]
+}

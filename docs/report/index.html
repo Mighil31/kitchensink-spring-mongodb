@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Migration Scorecard</title>
+<style>
+:root {
+  --bg: #f7f7f5; --card: #ffffff; --text: #1d1d1b; --muted: #6b6b66; --line: #e4e4df;
+  --pass: #1f7a4d; --pass-bg: #e3f3ea; --fail: #b3261e; --fail-bg: #fbe6e4;
+  --skip: #8a6d00; --skip-bg: #fbf1d0; --pend: #5b5b57; --pend-bg: #ececea;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161615; --card: #1f1f1d; --text: #ececea; --muted: #a0a09a; --line: #33332f;
+    --pass: #6fd3a0; --pass-bg: #173326; --fail: #ff8a80; --fail-bg: #3a1c1a;
+    --skip: #e8c860; --skip-bg: #352c10; --pend: #b5b5ae; --pend-bg: #2c2c29;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 1000px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 1.6rem; margin: 0 0 4px; }
+h2 { font-size: 1.2rem; margin: 0 0 4px; }
+h3 { font-size: 0.95rem; margin: 20px 0 6px; color: var(--muted); font-weight: 600; }
+.subtitle, .muted { color: var(--muted); }
+.subtitle { margin: 0 0 24px; }
+.lead { color: var(--muted); margin: 0 0 12px; }
+section.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.tile { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.tile-label { color: var(--muted); font-size: 0.85rem; }
+.tile-value { font-size: 1.7rem; font-weight: 700; line-height: 1.3; }
+.tile-value.ok { color: var(--pass); } .tile-value.bad { color: var(--fail); } .tile-value.pending { color: var(--pend); }
+.tile-note { color: var(--muted); font-size: 0.8rem; }
+code { font: 0.88em ui-monospace, SFMono-Regular, Menlo, monospace; overflow-wrap: anywhere; }
+.scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; font-weight: 600; color: var(--muted); font-size: 0.85rem; padding: 6px 8px 6px 0; }
+td { padding: 7px 8px 7px 0; border-top: 1px solid var(--line); vertical-align: top; }
+.result { width: 1%; white-space: nowrap; }
+.test { overflow-wrap: anywhere; }
+.method { color: var(--muted); font-size: 0.82em; }
+table.meta { min-width: 640px; }
+table.perf { min-width: 600px; }
+table.deviations { min-width: 820px; }
+table.meta tbody th { color: var(--text); }
+.nowrap, table.meta code, table.perf td { white-space: nowrap; }
+.badge { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
+.badge.pass { color: var(--pass); background: var(--pass-bg); }
+.badge.fail { color: var(--fail); background: var(--fail-bg); }
+.badge.skip { color: var(--skip); background: var(--skip-bg); }
+.badge.pending { color: var(--pend); background: var(--pend-bg); }
+details { margin-top: 6px; }
+summary { cursor: pointer; color: var(--muted); font-size: 0.9rem; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; font: 0.8rem ui-monospace, Menlo, monospace; background: var(--bg);
+      border: 1px solid var(--line); border-radius: 6px; padding: 8px; max-height: 320px; overflow: auto; }
+.pending-note { background: var(--pend-bg); border-radius: 8px; padding: 10px 12px; margin: 0 0 8px; }
+.caveats ul { margin: 6px 0 0; padding-left: 20px; color: var(--muted); }
+footer { color: var(--muted); font-size: 0.82rem; text-align: center; }
+</style>
+</head>
+<body>
+<main>
+<h1>kitchensink migration scorecard</h1>
+<p class="subtitle">JBoss EAP + H2 &rarr; Spring Boot + MongoDB. Generated 2026-11-14 from commit <code>fc9679b</code>.</p>
+
+<div class="tiles"><div class="tile"><div class="tile-label">Legacy baseline</div><div class="tile-value ok">27/27</div><div class="tile-note">contract tests passing on the legacy app</div></div><div class="tile"><div class="tile-label">Parity</div><div class="tile-value pending">Pending</div><div class="tile-note">new app not built yet (Phase 4)</div></div><div class="tile"><div class="tile-label">Performance SLO</div><div class="tile-value pending">Pending</div><div class="tile-note">baseline not measured yet (Phase 1b)</div></div><div class="tile"><div class="tile-label">Intentional changes</div><div class="tile-value neutral">14</div><div class="tile-note">9 decided, 5 still open</div></div></div>
+
+<section class="card">
+<h2>Contract parity</h2>
+<p class="lead">The same black-box HTTP suite runs against both apps. It only asserts behaviour both must share; bug fixes are tested in the new app and listed under Intentional changes.</p>
+<div class="scroll"><table class="meta"><thead><tr><th></th><th>Target</th><th>Base URL</th><th>Run on</th><th>Suite commit</th></tr></thead><tbody><tr><th>Legacy</th><td>JBoss EAP 8.1 Update 9.1, kitchensink 8.1.x @ 476de14</td><td><code>http://localhost:8080/kitchensink/rest</code></td><td class="nowrap">2026-11-14</td><td><code>eaa6374</code></td></tr><tr><th>New app</th><td colspan="4" class="muted">Not run yet</td></tr></tbody></table></div>
+<h3>CreateMemberIT</h3><table class="matrix"><thead><tr><th>Test</th><th class="result">Legacy</th><th class="result">New app</th></tr></thead><tbody><tr><td class="test">createdMember_appearsInList</td><td class="result"><span class="badge pass">passed</span></td><td class="result"><span class="badge pending">pending</span></td></tr><tr><td class="test">createdMember_canBeFetchedById</td><td class="result"><span class="badge pass">passed</span></td><td class="result"><span class="badge pending">pending</span></td></tr><tr><td class="test">nonJsonContentType_isRejectedWith415</td><td class="result"><span class="badge pass">passed</span></td><td class="result"><span class="badge pending">pending</span></td></tr><tr><td class="test">validMember_isCreated</td><td class="result"><span class="badge pass">passed</span></td><td class="result"><span class="badge pending">pending</span></td></tr></tbody></table><h3>DuplicateEmailIT</h3><table class="matrix"><thead><tr><th>Test</th><th class="result">Legacy</th><th class="result">New app</th></tr></thead><tbody><tr><td class="test">sameEmail_isRejectedWithConflict_andNotStored</td><td class="result"><span class="badge pass">passed</span></td><td class="result"><span class="badge pending">pending</span></td></tr></tbody></table><h3>GetMemberIT</h3><table class="matrix"><thead><tr><th>Test</th><th class="result">Legacy</th><th class="result">New app</th></tr></thead><tbody><tr><td class="test">GET /members/&quot;-1&quot; -&gt; 404<div class="method">malformedId_returns404</div></td><td class="result"><span class="badge pass">passed</span></td><td class="result"><span class="badge pending">pending</span></td></tr><tr><td class="test">GET /members/&quot;0x1&quot; -&gt; 404<div class="method">malformedId_returns404</div></td><td class="result"><span class="badge pass">passed</span></td><td class="result"><span class="badge pending">pending</span></td></tr><tr><td class="test">GET /members/&quot;1.5&quot; -&gt; 404<div class="method">malformedId_returns404</div></td><td class="result"><span class="badge pass">passed</span></td><td class="result"><span class="badge pending">pending</span></td></tr><tr><td class="test">GET /members/&quot;abc&quot; -&gt; 404<div class="method">malformedId_returns404</div></td><td class="result"><span class="badge pass">passed</span></td><td class="result"><span class="badge pending">pending</span></td></tr><tr><td class="test">unknownId_returns404</td><td class="result"><span class="badge pass">passed</span></td><td class="result"><span class="badge pending">pending</span></td></tr></tbody></table><h3>ListMembersIT</h3><table class="matrix"><thead><tr><th>Test</th><th class="result">Legacy</th><th class="result">New app</th></tr></thead><tbody><tr><td class="test">members_areSortedByName_caseSensitive</td><td class="result"><span class="badge pass">passed</span></td><td class="result"><span class="badge pending">pending</span></td></tr></tbody></table><h3>ValidationIT</h3><table class="matrix"><thead><tr><th>Test</th><th class="result">Legacy</th><th class="result">New app</th></tr></thead><tbody><tr><td class="test">name &quot;Mary-Jane O&#x27;Neil&quot; -&gt; created<div class="method">boundaryName_isAccepted</div></td><td class="result"><span class="badge pass">passed</span></td><td class="result"><span class="badge pending">pending</span></td></tr><tr><td class="test">name &quot;a&quot; -&gt; created<div class="method">boundaryName_isAccepted</div></td><td class="result"><span class="badge pass">passed</span></td><td class="result"><span class="badge pending">pending</span></td></tr><tr><td class="test">name &quot;abcdefghijklmnopqrstuvwxy&quot; -&gt; created<div class="method">boundaryName_isAccepted</div></td><td class="result"><span class="badge pass">passed</span></td><td class="result"><span class="badge pending">pending</span></td></tr><tr><td class="test">phone &quot;1234567890&quot; -&gt; created<div class="method">boundaryPhone_isAccepted</div></td><td class="result"><span class="badge pass">passed</span></td><td class="result"><span class="badge pending">pending</span></td></tr><tr><td class="test">phone &quot;123456789012&quot; -&gt; created<div class="method">boundaryPhone_isAccepted</div></td><td class="result"><span class="badge pass">passed</span></td><td class="result"><span class="badge pending">pending</span></td></tr><tr><td class="test">email &quot;&quot; -&gt; 400<div class="method">invalidEmail_isRejected</div></td><td class="result"><span class="badge pass">passed</span></td><td class="result"><span class="badge pending">pending</span></td></tr><tr><td class="test">email &quot;not-an-email&quot; -&gt; 400<div class="method">invalidEmail_isRejected</div></td><td class="result"><span class="badge pass">passed</span></td><td class="result"><span class="badge pending">pending</span></td></tr><tr><td class="test">name &quot;&quot; -&gt; 400<div class="method">invalidName_isRejected</div></td><td class="result"><span class="badge pass">passed</span></td><td class="result"><span class="badge pending">pending</span></td></tr><tr><td class="test">name &quot;R2D2&quot; -&gt; 400<div class="method">invalidName_isRejected</div></td><td class="result"><span class="badge pass">passed</span></td><td class="result"><span class="badge pending">pending</span></td></tr><tr><td class="test">name &quot;abcdefghijklmnopqrstuvwxyz&quot; -&gt; 400<div class="method">invalidName_isRejected</div></td><td class="result"><span class="badge pass">passed</span></td><td class="result"><span class="badge pending">pending</span></td></tr><tr><td class="test">phone &quot;&quot; -&gt; 400<div class="method">invalidPhone_isRejected</div></td><td class="result"><span class="badge pass">passed</span></td><td class="result"><span class="badge pending">pending</span></td></tr><tr><td class="test">phone &quot;123456789&quot; -&gt; 400<div class="method">invalidPhone_isRejected</div></td><td class="result"><span class="badge pass">passed</span></td><td class="result"><span class="badge pending">pending</span></td></tr><tr><td class="test">phone &quot;1234567890123&quot; -&gt; 400<div class="method">invalidPhone_isRejected</div></td><td class="result"><span class="badge pass">passed</span></td><td class="result"><span class="badge pending">pending</span></td></tr><tr><td class="test">phone &quot;12345abcde&quot; -&gt; 400<div class="method">invalidPhone_isRejected</div></td><td class="result"><span class="badge pass">passed</span></td><td class="result"><span class="badge pending">pending</span></td></tr><tr><td class="test">missingFields_areAllReported</td><td class="result"><span class="badge pass">passed</span></td><td class="result"><span class="badge pending">pending</span></td></tr><tr><td class="test">unusualEmail_isAccepted</td><td class="result"><span class="badge pass">passed</span></td><td class="result"><span class="badge pending">pending</span></td></tr></tbody></table>
+</section>
+
+<section class="card">
+<h2>Performance</h2>
+<p class="lead">Pass/fail is the SLO; the difference from legacy is context, not a target.</p>
+<p class="pending-note">Not measured yet. Phase 1b runs Gatling simulations against legacy to record a baseline, then sets the SLO from it. The new app is measured after Phase 5.</p><details class="caveats"><summary>Why the numbers differ (read before comparing)</summary><ul><li>Legacy uses in-memory H2 inside the app server&#x27;s JVM; the new app talks to MongoDB over the network.</li><li>Legacy has no authentication; the new app checks HTTP Basic credentials (bcrypt) on every request.</li><li>Legacy checks for a duplicate email with a separate query before inserting; the new app relies on a unique index.</li><li>Same machine, same Docker resources, warm-up run discarded, median of three runs.</li></ul></details>
+</section>
+
+<section class="card">
+<h2>Intentional changes</h2>
+<p class="lead">Behaviour that differs from legacy on purpose. Each one traces to a decision and is proven by a test in the new app.</p>
+<div class="scroll"><table class="deviations"><thead><tr><th>Id</th><th>Change</th><th>Legacy</th><th>New app</th><th>Decision</th><th>Status</th><th>Proven by</th></tr></thead><tbody><tr><td class="nowrap"><code>ADR-2</code></td><td class="test">Member id format</td><td>Sequential number (0, 1, 2…)</td><td>24-hex MongoDB ObjectId</td><td>Design Decisions §2</td><td><span class="badge pass">decided</span></td><td><span class="badge pending">pending</span></td></tr><tr><td class="nowrap"><code>A1</code></td><td class="test">Successful create response</td><td>200, empty body, no Location</td><td>201 + Location header + member body</td><td>Gap Analysis A1</td><td><span class="badge pass">decided</span></td><td><span class="badge pending">pending</span></td></tr><tr><td class="nowrap"><code>ADR-3</code></td><td class="test">Error response body</td><td>Different ad-hoc shape per error; empty 404</td><td>RFC 9457 ProblemDetail with an errors map</td><td>Design Decisions §3</td><td><span class="badge pass">decided</span></td><td><span class="badge pending">pending</span></td></tr><tr><td class="nowrap"><code>ADR-6</code></td><td class="test">API authentication</td><td>None</td><td>HTTP Basic on all of /rest/**; 401 ProblemDetail without credentials</td><td>Design Decisions §8</td><td><span class="badge pass">decided</span></td><td><span class="badge pending">pending</span></td></tr><tr><td class="nowrap"><code>B1</code></td><td class="test">Concurrent registrations with the same email</td><td>One 200; losers get 409 or 400 with transaction-manager text</td><td>One 201; every other request 409</td><td>Gap Analysis B1</td><td><span class="badge pass">decided</span></td><td><span class="badge pending">pending</span></td></tr><tr><td class="nowrap"><code>B2</code></td><td class="test">Email uniqueness ignores case</td><td>JOHN@x.com accepted next to john@x.com</td><td>409 Conflict</td><td>Gap Analysis B2</td><td><span class="badge pass">decided</span></td><td><span class="badge pending">pending</span></td></tr><tr><td class="nowrap"><code>B3</code></td><td class="test">Blank name</td><td>&quot;   &quot; accepted (200)</td><td>400 validation error</td><td>Gap Analysis B3</td><td><span class="badge pass">decided</span></td><td><span class="badge pending">pending</span></td></tr><tr><td class="nowrap"><code>B5, B17</code></td><td class="test">Malformed JSON or JSON array body</td><td>500 with RESTEasy / JSON-B internals</td><td>400 ProblemDetail, no internals</td><td>Gap Analysis B5, B17</td><td><span class="badge pass">decided</span></td><td><span class="badge pending">pending</span></td></tr><tr><td class="nowrap"><code>B6</code></td><td class="test">Null request body</td><td>400 with Hibernate Validator code HV000116</td><td>400 ProblemDetail, no internals</td><td>Gap Analysis B6</td><td><span class="badge pass">decided</span></td><td><span class="badge pending">pending</span></td></tr><tr><td class="nowrap"><code>B4</code></td><td class="test">Client-supplied id in the request body</td><td>400 with Hibernate &#x27;detached entity&#x27; message</td><td>Request DTO has no id; exact response not decided</td><td>Gap Analysis B4</td><td><span class="badge skip">open</span></td><td><span class="badge pending">pending</span></td></tr><tr><td class="nowrap"><code>B10</code></td><td class="test">Unknown JSON fields</td><td>Silently ignored (200)</td><td>Reject or keep ignoring: not decided</td><td>Gap Analysis B10</td><td><span class="badge skip">open</span></td><td><span class="badge pending">pending</span></td></tr><tr><td class="nowrap"><code>B11</code></td><td class="test">Name rule vs its message</td><td>Only digits rejected; message says &#x27;letters and spaces&#x27;</td><td>Not decided</td><td>Gap Analysis B11</td><td><span class="badge skip">open</span></td><td><span class="badge pending">pending</span></td></tr><tr><td class="nowrap"><code>B16</code></td><td class="test">Field breaking two rules</td><td>One message, chosen at random</td><td>Not decided (all messages, or a fixed order)</td><td>Gap Analysis B16</td><td><span class="badge skip">open</span></td><td><span class="badge pending">pending</span></td></tr><tr><td class="nowrap"><code>A3</code></td><td class="test">Member list pagination</td><td>Whole list, unbounded</td><td>Not decided</td><td>Gap Analysis A3</td><td><span class="badge skip">open</span></td><td><span class="badge pending">pending</span></td></tr></tbody></table></div>
+</section>
+
+<footer>Built by <code>scripts/scorecard.py</code> from <code>docs/report/data/</code>.</footer>
+</main>
+</body>
+</html>
