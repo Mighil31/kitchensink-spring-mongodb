@@ -15,3 +15,9 @@ updates:
     directory: "/app"
     schedule:
       interval: weekly
+    # The brief targets Java 21: take patch/minor image updates, never a newer JDK line.
+    ignore:
+      - dependency-name: "eclipse-temurin"
+        versions: [">= 22"]
+      - dependency-name: "maven"
+        versions: ["> 3.9-eclipse-temurin-21"]
