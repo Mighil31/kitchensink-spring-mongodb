@@ -19,11 +19,9 @@ Prerequisites: Java 21, Maven, the target app running.
 # Against legacy JBoss EAP (default base URL)
 mvn verify
 
-# Against another target
-mvn verify -Dcontract.baseUrl=http://localhost:8081/rest
-
-# With HTTP Basic (password from env only)
-CONTRACT_PASSWORD=... mvn verify -Dcontract.baseUrl=... -Dcontract.user=api
+# Against the new app (HTTP Basic; password from env only)
+CONTRACT_PASSWORD=... mvn verify -Dcontract.baseUrl=http://localhost:8081/rest \
+    -Dcontract.format=v2 -Dcontract.user=api
 ```
 
 The suite asserts only behaviour both apps must share. Intentional changes (bug fixes,

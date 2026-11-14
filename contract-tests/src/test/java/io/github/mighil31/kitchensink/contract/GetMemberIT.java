@@ -12,7 +12,7 @@ class GetMemberIT extends ContractTest {
     @Test
     void unknownId_returns404() {
         given(api)
-                .when().get("/members/{id}", "999999999")
+                .when().get("/members/{id}", format.unknownId())
                 .then().statusCode(404);
     }
 

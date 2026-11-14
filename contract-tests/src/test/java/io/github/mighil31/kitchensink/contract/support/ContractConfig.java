@@ -6,16 +6,18 @@ import java.util.Optional;
  * Where the suite points. Set via Maven / system properties:
  * <ul>
  *   <li>{@code contract.baseUrl} – REST root, e.g. {@code http://localhost:8080/kitchensink/rest}</li>
+ *   <li>{@code contract.format} – {@code legacy} or {@code v2}, see {@link ApiFormat}</li>
  *   <li>{@code contract.user} – optional HTTP Basic user (blank = no auth, as on legacy)</li>
  *   <li>env {@code CONTRACT_PASSWORD} – password for that user (env only, never on the command line)</li>
  * </ul>
  */
-public record ContractConfig(String baseUrl, Optional<Credentials> credentials) {
+public record ContractConfig(String baseUrl, String format, Optional<Credentials> credentials) {
 
     public record Credentials(String user, String password) {}
 
     public static ContractConfig fromEnvironment() {
         String baseUrl = System.getProperty("contract.baseUrl", "http://localhost:8080/kitchensink/rest");
+        String format = System.getProperty("contract.format", "legacy");
         String user = System.getProperty("contract.user", "");
 
         Optional<Credentials> credentials = Optional.empty();
@@ -26,7 +28,7 @@ public record ContractConfig(String baseUrl, Optional<Credentials> credentials) 
             }
             credentials = Optional.of(new Credentials(user, password));
         }
-        return new ContractConfig(stripTrailingSlash(baseUrl), credentials);
+        return new ContractConfig(stripTrailingSlash(baseUrl), format, credentials);
     }
 
     private static String stripTrailingSlash(String url) {

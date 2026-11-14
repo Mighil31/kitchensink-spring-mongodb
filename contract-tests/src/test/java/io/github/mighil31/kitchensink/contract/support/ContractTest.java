@@ -20,6 +20,8 @@ public abstract class ContractTest {
 
     protected static RequestSpecification api;
 
+    protected static ApiFormat format;
+
     @BeforeAll
     static void configureRestAssured() {
         // Print request + response only when an assertion on them fails.
@@ -36,5 +38,6 @@ public abstract class ContractTest {
                 builder.setAuth(RestAssured.preemptive().basic(c.user(), c.password())));
 
         api = builder.build();
+        format = ApiFormat.forName(CONFIG.format(), api);
     }
 }

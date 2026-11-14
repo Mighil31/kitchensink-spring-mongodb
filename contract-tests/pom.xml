@@ -20,6 +20,8 @@
     <properties>
         <!-- Target under test. Override: mvn verify -Dcontract.baseUrl=http://localhost:8081/rest -->
         <contract.baseUrl>http://localhost:8080/kitchensink/rest</contract.baseUrl>
+        <!-- Response format of the target: legacy | v2 -->
+        <contract.format>legacy</contract.format>
         <!-- Optional HTTP Basic user (new app). Password comes from env CONTRACT_PASSWORD only. -->
         <contract.user></contract.user>
     </properties>
@@ -40,6 +42,12 @@
             <artifactId>assertj-core</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- JSON serializer REST Assured uses for request bodies -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -52,6 +60,7 @@
                 <configuration>
                     <systemPropertyVariables>
                         <contract.baseUrl>${contract.baseUrl}</contract.baseUrl>
+                        <contract.format>${contract.format}</contract.format>
                         <contract.user>${contract.user}</contract.user>
                     </systemPropertyVariables>
                 </configuration>
