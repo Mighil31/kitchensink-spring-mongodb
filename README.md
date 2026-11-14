@@ -3,28 +3,47 @@
 Migration of the JBoss EAP [kitchensink quickstart](https://github.com/jboss-developer/jboss-eap-quickstarts/tree/8.1.x/kitchensink)
 to Spring Boot (Java 21) and MongoDB.
 
-> Work in progress. Phase 1: contract (parity) tests against the legacy app.
+> Work in progress. Phase 1 (contract baseline) is done; Phase 2 (app skeleton, local stack, CI) is in progress.
 
 ## Layout
 
 | Path | What |
 |---|---|
+| `app/` | The Spring Boot 4 application (Java 21, Spring Data MongoDB). |
+| `compose.yaml`, `docker/` | Local stack: MongoDB with auth + the app. |
 | `contract-tests/` | Black-box HTTP suite capturing the legacy API's core behaviour. Runs against legacy now and against the new app later; only config changes. |
 | `docs/report/` | **Migration scorecard**: one page comparing legacy and the new app (contract parity, performance vs SLO, intentional changes). |
 | `perf/` | Gatling performance tests (standalone Maven project, not part of `mvn verify`). |
 | `scripts/scorecard.py` | Stores test runs and builds the scorecard page. |
 
+## Running the app
+
+Prerequisites: Java 21, Maven, Docker.
+
+```bash
+# Whole stack in Docker
+cp .env.example .env              # then change the passwords
+docker compose up --build         # http://localhost:8081/actuator/health
+
+# Or just the app, with a throwaway MongoDB from Testcontainers
+mvn -pl app spring-boot:test-run
+
+# Build + unit and integration tests (what CI runs)
+mvn verify
+```
+
 ## Running the contract tests
 
-Prerequisites: Java 21, Maven, the target app running.
+Prerequisites: Java 21, Maven, the target app running. The suite is opt-in (`-Pcontract`), so a
+plain `mvn verify` doesn't need a running server.
 
 ```bash
 # Against legacy JBoss EAP (default base URL)
-mvn verify
+mvn -pl contract-tests verify -Pcontract
 
 # Against the new app (HTTP Basic; password from env only)
-CONTRACT_PASSWORD=... mvn verify -Dcontract.baseUrl=http://localhost:8081/rest \
-    -Dcontract.format=v2 -Dcontract.user=api
+CONTRACT_PASSWORD=... mvn -pl contract-tests verify -Pcontract \
+    -Dcontract.baseUrl=http://localhost:8081/rest -Dcontract.format=v2 -Dcontract.user=api
 ```
 
 The suite asserts only behaviour both apps must share. Intentional changes (bug fixes,

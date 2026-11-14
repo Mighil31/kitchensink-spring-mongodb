@@ -11,8 +11,8 @@
     <name>kitchensink (Spring Boot + MongoDB)</name>
 
     <modules>
+        <module>app</module>
         <module>contract-tests</module>
-        <!-- <module>app</module>  Phase 2 -->
     </modules>
 
     <properties>

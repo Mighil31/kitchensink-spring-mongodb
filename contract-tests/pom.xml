@@ -24,7 +24,19 @@
         <contract.format>legacy</contract.format>
         <!-- Optional HTTP Basic user (new app). Password comes from env CONTRACT_PASSWORD only. -->
         <contract.user></contract.user>
+        <!-- Opt-in: the suite needs a running target, so a plain `mvn verify` (and CI) skips it.
+             Run with: mvn verify -Pcontract -->
+        <skipITs>true</skipITs>
     </properties>
+
+    <profiles>
+        <profile>
+            <id>contract</id>
+            <properties>
+                <skipITs>false</skipITs>
+            </properties>
+        </profile>
+    </profiles>
 
     <dependencies>
         <dependency>

@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: kitchensink
+  mongodb:
+    # Overridden by env MONGODB_URI (docker compose) or by Testcontainers in tests.
+    uri: ${MONGODB_URI:mongodb://localhost:27017/kitchensink}
+
+server:
+  # 8080 is the legacy JBoss app; running both side by side is the point of the contract suite.
+  port: ${PORT:8081}
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      probes:
+        enabled: true

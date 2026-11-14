@@ -6,7 +6,7 @@ files in `data/` by `scripts/scorecard.py` (Python 3.12+, standard library only)
 
 ```bash
 # 1. Run the contract suite against a target, then store the run
-mvn verify                                             # legacy, defaults
+mvn -pl contract-tests verify -Pcontract                # legacy, defaults
 python3 scripts/scorecard.py save-contract --name legacy --label "JBoss EAP 8.1 (legacy)"
 
 # 2. Rebuild the page
