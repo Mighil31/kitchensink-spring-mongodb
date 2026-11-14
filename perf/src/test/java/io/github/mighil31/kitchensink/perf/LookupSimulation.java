@@ -1,12 +1,11 @@
 package io.github.mighil31.kitchensink.perf;
 
-import io.gatling.javaapi.core.ScenarioBuilder;
-import io.gatling.javaapi.core.Simulation;
-
-import java.util.List;
-
 import static io.gatling.javaapi.core.CoreDsl.constantUsersPerSec;
 import static io.gatling.javaapi.core.CoreDsl.scenario;
+
+import io.gatling.javaapi.core.ScenarioBuilder;
+import io.gatling.javaapi.core.Simulation;
+import java.util.List;
 
 /** Reads only: GET /members/{id} for members seeded before the measured window. */
 public class LookupSimulation extends Simulation {

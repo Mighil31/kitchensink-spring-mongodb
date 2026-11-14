@@ -34,8 +34,8 @@ public abstract class ContractTest {
                 // Validation messages are locale-dependent; pin them so assertions are stable.
                 .addHeader("Accept-Language", "en");
 
-        CONFIG.credentials().ifPresent(c ->
-                builder.setAuth(RestAssured.preemptive().basic(c.user(), c.password())));
+        CONFIG.credentials()
+                .ifPresent(c -> builder.setAuth(RestAssured.preemptive().basic(c.user(), c.password())));
 
         api = builder.build();
         format = ApiFormat.forName(CONFIG.format(), api);

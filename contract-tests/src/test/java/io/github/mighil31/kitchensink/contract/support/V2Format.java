@@ -1,7 +1,6 @@
 package io.github.mighil31.kitchensink.contract.support;
 
 import io.restassured.response.Response;
-
 import java.util.Map;
 
 /**

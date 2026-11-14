@@ -1,23 +1,22 @@
 package io.github.mighil31.kitchensink.contract;
 
+import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
+
 import io.github.mighil31.kitchensink.contract.support.ContractTest;
 import io.github.mighil31.kitchensink.contract.support.TestMembers;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvFileSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
-
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static io.restassured.RestAssured.given;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class ValidationIT extends ContractTest {
 
@@ -30,18 +29,26 @@ class ValidationIT extends ContractTest {
     private static final String PHONE_DIGITS = "numeric value out of bounds (<12 digits>.<0 digits> expected)";
 
     private static final Map<String, String> MESSAGES = Map.of(
-            "NAME_SIZE", NAME_SIZE, "NAME_PATTERN", NAME_PATTERN,
-            "EMAIL_EMPTY", EMAIL_EMPTY, "EMAIL_FORMAT", EMAIL_FORMAT,
-            "PHONE_SIZE", PHONE_SIZE, "PHONE_DIGITS", PHONE_DIGITS);
+            "NAME_SIZE",
+            NAME_SIZE,
+            "NAME_PATTERN",
+            NAME_PATTERN,
+            "EMAIL_EMPTY",
+            EMAIL_EMPTY,
+            "EMAIL_FORMAT",
+            EMAIL_FORMAT,
+            "PHONE_SIZE",
+            PHONE_SIZE,
+            "PHONE_DIGITS",
+            PHONE_DIGITS);
 
     @Test
     void missingFields_areAllReported() {
         Map<String, String> errors = postExpectingValidationErrors(Map.of());
 
-        assertThat(errors).containsOnly(
-                Map.entry("name", NOT_NULL),
-                Map.entry("email", NOT_NULL),
-                Map.entry("phoneNumber", NOT_NULL));
+        assertThat(errors)
+                .containsOnly(
+                        Map.entry("name", NOT_NULL), Map.entry("email", NOT_NULL), Map.entry("phoneNumber", NOT_NULL));
     }
 
     static Stream<Arguments> invalidNames() {
@@ -64,9 +71,7 @@ class ValidationIT extends ContractTest {
     }
 
     static Stream<Arguments> invalidEmails() {
-        return Stream.of(
-                arguments("", Set.of(EMAIL_EMPTY)),
-                arguments("not-an-email", Set.of(EMAIL_FORMAT)));
+        return Stream.of(arguments("", Set.of(EMAIL_EMPTY)), arguments("not-an-email", Set.of(EMAIL_FORMAT)));
     }
 
     @ParameterizedTest(name = "email {0} -> 400")
@@ -109,9 +114,8 @@ class ValidationIT extends ContractTest {
         if (expected.equals("created")) {
             postExpectingCreated(memberWith(field, input));
         } else {
-            Set<String> allowed = Arrays.stream(messageKeys.split("\\|"))
-                    .map(MESSAGES::get)
-                    .collect(Collectors.toSet());
+            Set<String> allowed =
+                    Arrays.stream(messageKeys.split("\\|")).map(MESSAGES::get).collect(Collectors.toSet());
             assertOnlyFieldRejected(field, input, allowed);
         }
     }
@@ -132,15 +136,15 @@ class ValidationIT extends ContractTest {
     private Map<String, String> postExpectingValidationErrors(Map<String, Object> body) {
         return format.fieldErrors(given(api)
                 .body(body)
-                .when().post("/members")
-                .then().statusCode(400)
-                .extract().response());
+                .when()
+                .post("/members")
+                .then()
+                .statusCode(400)
+                .extract()
+                .response());
     }
 
     private void postExpectingCreated(Map<String, Object> body) {
-        given(api)
-                .body(body)
-                .when().post("/members")
-                .then().statusCode(format.createdStatus());
+        given(api).body(body).when().post("/members").then().statusCode(format.createdStatus());
     }
 }

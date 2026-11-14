@@ -32,13 +32,16 @@ public final class SeedMembers {
             for (int i = 0; i < count; i++) {
                 String email = Members.newEmail();
                 HttpResponse<String> response = client.send(
-                        request("/members").POST(HttpRequest.BodyPublishers.ofString(Members.body(email))).build(),
+                        request("/members")
+                                .POST(HttpRequest.BodyPublishers.ofString(Members.body(email)))
+                                .build(),
                         HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() != 200 && response.statusCode() != 201) {
                     throw new IllegalStateException("Seeding failed: " + response.statusCode() + " " + response.body());
                 }
                 emails.add(email);
-                response.headers().firstValue("Location")
+                response.headers()
+                        .firstValue("Location")
                         .ifPresent(location -> ids.add(location.substring(location.lastIndexOf('/') + 1)));
             }
             if (ids.size() == count) {
@@ -53,8 +56,10 @@ public final class SeedMembers {
         }
     }
 
-    private static List<String> idsByEmail(HttpClient client, List<String> emails) throws IOException, InterruptedException {
-        String list = client.send(request("/members").GET().build(), HttpResponse.BodyHandlers.ofString()).body();
+    private static List<String> idsByEmail(HttpClient client, List<String> emails)
+            throws IOException, InterruptedException {
+        String list = client.send(request("/members").GET().build(), HttpResponse.BodyHandlers.ofString())
+                .body();
         Map<String, String> idByEmail = new HashMap<>();
         Matcher member = MEMBER.matcher(list);
         while (member.find()) {

@@ -1,11 +1,11 @@
 {
   "items": [
     {
-      "id": "ADR-2",
+      "id": "ADR-0002",
       "change": "Member id format",
       "legacy": "Sequential number (0, 1, 2…)",
       "new": "24-hex MongoDB ObjectId",
-      "source": "Design Decisions §2",
+      "source": "ADR 0002",
       "status": "decided",
       "verifiedBy": null
     },
@@ -19,20 +19,20 @@
       "verifiedBy": null
     },
     {
-      "id": "ADR-3",
+      "id": "ADR-0003",
       "change": "Error response body",
       "legacy": "Different ad-hoc shape per error; empty 404",
       "new": "RFC 9457 ProblemDetail with an errors map",
-      "source": "Design Decisions §3",
+      "source": "ADR 0003",
       "status": "decided",
       "verifiedBy": null
     },
     {
-      "id": "ADR-6",
+      "id": "ADR-0007",
       "change": "API authentication",
       "legacy": "None",
       "new": "HTTP Basic on all of /rest/**; 401 ProblemDetail without credentials",
-      "source": "Design Decisions §8",
+      "source": "ADR 0007",
       "status": "decided",
       "verifiedBy": null
     },
@@ -41,7 +41,7 @@
       "change": "Concurrent registrations with the same email",
       "legacy": "One 200; losers get 409 or 400 with transaction-manager text",
       "new": "One 201; every other request 409",
-      "source": "Gap Analysis B1",
+      "source": "Gap Analysis B1 · ADR 0005",
       "status": "decided",
       "verifiedBy": null
     },
@@ -68,7 +68,7 @@
       "change": "Malformed JSON or JSON array body",
       "legacy": "500 with RESTEasy / JSON-B internals",
       "new": "400 ProblemDetail, no internals",
-      "source": "Gap Analysis B5, B17",
+      "source": "Gap Analysis B5, B17 · ADR 0003",
       "status": "decided",
       "verifiedBy": null
     },
@@ -77,7 +77,7 @@
       "change": "Null request body",
       "legacy": "400 with Hibernate Validator code HV000116",
       "new": "400 ProblemDetail, no internals",
-      "source": "Gap Analysis B6",
+      "source": "Gap Analysis B6 · ADR 0003",
       "status": "decided",
       "verifiedBy": null
     },
@@ -95,7 +95,7 @@
       "change": "Unknown JSON fields",
       "legacy": "Silently ignored (200)",
       "new": "Reject or keep ignoring: not decided",
-      "source": "Gap Analysis B10",
+      "source": "Gap Analysis B10 · ADR 0003",
       "status": "open",
       "verifiedBy": null
     },
@@ -113,7 +113,7 @@
       "change": "Field breaking two rules",
       "legacy": "One message, chosen at random",
       "new": "Not decided (all messages, or a fixed order)",
-      "source": "Gap Analysis B16",
+      "source": "Gap Analysis B16 · ADR 0003",
       "status": "open",
       "verifiedBy": null
     },

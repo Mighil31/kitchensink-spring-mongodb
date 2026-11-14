@@ -13,7 +13,8 @@ public final class Members {
 
     /** Endless feeder: each record holds a fresh JSON body under {@code memberBody}. */
     public static Iterator<Map<String, Object>> uniqueBodies() {
-        return Stream.generate(() -> Map.<String, Object>of("memberBody", body(newEmail()))).iterator();
+        return Stream.generate(() -> Map.<String, Object>of("memberBody", body(newEmail())))
+                .iterator();
     }
 
     public static String newEmail() {
@@ -22,8 +23,7 @@ public final class Members {
 
     public static String body(String email) {
         return """
-                {"name":"Perf %s","email":"%s","phoneNumber":"2125551234"}"""
-                .formatted(randomLetters(10), email);
+                {"name":"Perf %s","email":"%s","phoneNumber":"2125551234"}""".formatted(randomLetters(10), email);
     }
 
     private static String randomLetters(int n) {

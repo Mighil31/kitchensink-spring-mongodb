@@ -1,15 +1,14 @@
 package io.github.mighil31.kitchensink.contract;
 
+import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.github.mighil31.kitchensink.contract.support.ContractTest;
 import io.github.mighil31.kitchensink.contract.support.TestMembers;
 import io.restassured.response.Response;
-import org.junit.jupiter.api.Test;
-
 import java.util.List;
 import java.util.Map;
-
-import static io.restassured.RestAssured.given;
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class DuplicateEmailIT extends ContractTest {
 
@@ -23,9 +22,13 @@ class DuplicateEmailIT extends ContractTest {
         post(duplicate).then().statusCode(409);
 
         List<Map<String, Object>> members = given(api)
-                .when().get("/members")
-                .then().statusCode(200)
-                .extract().jsonPath().getList("$");
+                .when()
+                .get("/members")
+                .then()
+                .statusCode(200)
+                .extract()
+                .jsonPath()
+                .getList("$");
 
         assertThat(members)
                 .filteredOn(m -> original.get("email").equals(m.get("email")))

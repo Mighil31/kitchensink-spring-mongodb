@@ -1,13 +1,12 @@
 package io.github.mighil31.kitchensink.perf;
 
-import io.gatling.javaapi.http.HttpProtocolBuilder;
+import static io.gatling.javaapi.http.HttpDsl.http;
 
+import io.gatling.javaapi.http.HttpProtocolBuilder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.Optional;
-
-import static io.gatling.javaapi.http.HttpDsl.http;
 
 /**
  * Run settings, from system properties (-Dname=value):
@@ -50,8 +49,7 @@ public final class PerfConfig {
     }
 
     public static HttpProtocolBuilder httpProtocol() {
-        HttpProtocolBuilder protocol = http
-                .baseUrl(baseUrl())
+        HttpProtocolBuilder protocol = http.baseUrl(baseUrl())
                 .acceptHeader("application/json")
                 .contentTypeHeader("application/json")
                 .acceptLanguageHeader("en")

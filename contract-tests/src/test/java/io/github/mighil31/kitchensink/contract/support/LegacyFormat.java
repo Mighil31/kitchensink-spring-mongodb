@@ -1,12 +1,11 @@
 package io.github.mighil31.kitchensink.contract.support;
 
+import static io.restassured.RestAssured.given;
+
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-
 import java.util.List;
 import java.util.Map;
-
-import static io.restassured.RestAssured.given;
 
 /**
  * JBoss EAP kitchensink: POST returns 200 with an empty body and no Location,
@@ -30,15 +29,19 @@ final class LegacyFormat implements ApiFormat {
     public String idOfCreated(Response createResponse, Map<String, Object> requestBody) {
         Object email = requestBody.get("email");
         List<Map<String, Object>> members = given(api)
-                .when().get("/members")
-                .then().statusCode(200)
-                .extract().jsonPath().getList("$");
+                .when()
+                .get("/members")
+                .then()
+                .statusCode(200)
+                .extract()
+                .jsonPath()
+                .getList("$");
 
-        List<Map<String, Object>> matches = members.stream()
-                .filter(m -> email.equals(m.get("email")))
-                .toList();
+        List<Map<String, Object>> matches =
+                members.stream().filter(m -> email.equals(m.get("email"))).toList();
         if (matches.size() != 1) {
-            throw new IllegalStateException("Expected exactly one member with email " + email + ", found " + matches.size());
+            throw new IllegalStateException(
+                    "Expected exactly one member with email " + email + ", found " + matches.size());
         }
         return String.valueOf(matches.getFirst().get("id"));
     }

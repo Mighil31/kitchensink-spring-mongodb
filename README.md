@@ -12,6 +12,7 @@ to Spring Boot (Java 21) and MongoDB.
 | `app/` | The Spring Boot 4 application (Java 21, Spring Data MongoDB). |
 | `compose.yaml`, `docker/` | Local stack: MongoDB with auth + the app. |
 | `contract-tests/` | Black-box HTTP suite capturing the legacy API's core behaviour. Runs against legacy now and against the new app later; only config changes. |
+| `docs/adr/` | Architecture Decision Records: one page per significant decision. |
 | `docs/report/` | **Migration scorecard**: one page comparing legacy and the new app (contract parity, performance vs SLO, intentional changes). |
 | `perf/` | Gatling performance tests (standalone Maven project, not part of `mvn verify`). |
 | `scripts/scorecard.py` | Stores test runs and builds the scorecard page. |

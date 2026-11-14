@@ -1,15 +1,14 @@
 package io.github.mighil31.kitchensink.contract;
 
+import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.github.mighil31.kitchensink.contract.support.ContractTest;
 import io.github.mighil31.kitchensink.contract.support.TestMembers;
 import io.restassured.response.Response;
-import org.junit.jupiter.api.Test;
-
 import java.util.List;
 import java.util.Map;
-
-import static io.restassured.RestAssured.given;
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class CreateMemberIT extends ContractTest {
 
@@ -17,8 +16,10 @@ class CreateMemberIT extends ContractTest {
     void validMember_isCreated() {
         given(api)
                 .body(TestMembers.validMember())
-                .when().post("/members")
-                .then().statusCode(format.createdStatus());
+                .when()
+                .post("/members")
+                .then()
+                .statusCode(format.createdStatus());
     }
 
     @Test
@@ -27,9 +28,13 @@ class CreateMemberIT extends ContractTest {
         String id = create(member);
 
         Map<String, Object> fetched = given(api)
-                .when().get("/members/{id}", id)
-                .then().statusCode(200)
-                .extract().jsonPath().getMap("$");
+                .when()
+                .get("/members/{id}", id)
+                .then()
+                .statusCode(200)
+                .extract()
+                .jsonPath()
+                .getMap("$");
 
         assertSameMember(fetched, member);
     }
@@ -40,9 +45,13 @@ class CreateMemberIT extends ContractTest {
         create(member);
 
         List<Map<String, Object>> members = given(api)
-                .when().get("/members")
-                .then().statusCode(200)
-                .extract().jsonPath().getList("$");
+                .when()
+                .get("/members")
+                .then()
+                .statusCode(200)
+                .extract()
+                .jsonPath()
+                .getList("$");
 
         assertThat(members)
                 .filteredOn(m -> member.get("email").equals(m.get("email")))
@@ -55,17 +64,22 @@ class CreateMemberIT extends ContractTest {
         given(api)
                 .contentType("text/plain")
                 .body("{}")
-                .when().post("/members")
-                .then().statusCode(415);
+                .when()
+                .post("/members")
+                .then()
+                .statusCode(415);
     }
 
     /** POSTs the member, asserts it was created and returns its id. */
     private String create(Map<String, Object> member) {
         Response response = given(api)
                 .body(member)
-                .when().post("/members")
-                .then().statusCode(format.createdStatus())
-                .extract().response();
+                .when()
+                .post("/members")
+                .then()
+                .statusCode(format.createdStatus())
+                .extract()
+                .response();
         return format.idOfCreated(response, member);
     }
 

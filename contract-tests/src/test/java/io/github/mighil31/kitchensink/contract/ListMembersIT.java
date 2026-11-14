@@ -1,14 +1,13 @@
 package io.github.mighil31.kitchensink.contract;
 
-import io.github.mighil31.kitchensink.contract.support.ContractTest;
-import io.github.mighil31.kitchensink.contract.support.TestMembers;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.Map;
-
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
+
+import io.github.mighil31.kitchensink.contract.support.ContractTest;
+import io.github.mighil31.kitchensink.contract.support.TestMembers;
+import java.util.List;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
 
 class ListMembersIT extends ContractTest {
 
@@ -20,9 +19,13 @@ class ListMembersIT extends ContractTest {
         }
 
         List<String> names = given(api)
-                .when().get("/members")
-                .then().statusCode(200)
-                .extract().jsonPath().getList("name", String.class);
+                .when()
+                .get("/members")
+                .then()
+                .statusCode(200)
+                .extract()
+                .jsonPath()
+                .getList("name", String.class);
 
         assertThat(names)
                 .filteredOn(name -> name.endsWith(suffix))
@@ -32,9 +35,6 @@ class ListMembersIT extends ContractTest {
     private void createNamed(String name) {
         Map<String, Object> member = TestMembers.validMember();
         member.put("name", name);
-        given(api)
-                .body(member)
-                .when().post("/members")
-                .then().statusCode(format.createdStatus());
+        given(api).body(member).when().post("/members").then().statusCode(format.createdStatus());
     }
 }
