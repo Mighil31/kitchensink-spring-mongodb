@@ -47,4 +47,10 @@ final class LegacyFormat implements ApiFormat {
     public String unknownId() {
         return "999999999";
     }
+
+    /** Legacy returns the field map as the whole body: {"name": "...", "email": "..."}. */
+    @Override
+    public Map<String, String> fieldErrors(Response validationResponse) {
+        return validationResponse.jsonPath().getMap("$", String.class, String.class);
+    }
 }

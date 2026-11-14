@@ -28,4 +28,10 @@ final class V2Format implements ApiFormat {
     public String unknownId() {
         return "000000000000000000000000";
     }
+
+    /** ProblemDetail with an "errors" extension: {"type": ..., "errors": {"name": "..."}}. */
+    @Override
+    public Map<String, String> fieldErrors(Response validationResponse) {
+        return validationResponse.jsonPath().getMap("errors", String.class, String.class);
+    }
 }

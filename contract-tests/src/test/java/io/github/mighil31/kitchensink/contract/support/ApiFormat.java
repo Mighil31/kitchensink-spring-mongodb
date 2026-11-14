@@ -20,6 +20,9 @@ public interface ApiFormat {
     /** An id that is well-formed for this target but belongs to no member. */
     String unknownId();
 
+    /** Field name → validation message from a 400 validation response. */
+    Map<String, String> fieldErrors(Response validationResponse);
+
     static ApiFormat forName(String name, RequestSpecification api) {
         return switch (name) {
             case "legacy" -> new LegacyFormat(api);
