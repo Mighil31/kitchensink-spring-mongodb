@@ -24,5 +24,13 @@ CONTRACT_PASSWORD=... mvn verify -Dcontract.baseUrl=http://localhost:8081/rest \
     -Dcontract.format=v2 -Dcontract.user=api
 ```
 
+Write a Markdown summary of the last run (needs Python 3):
+
+```bash
+python3 scripts/contract_report.py --target "<app name and version>" --out docs/contract/<name>.md
+```
+
+Legacy baseline: [`docs/contract/legacy-baseline.md`](docs/contract/legacy-baseline.md).
+
 The suite asserts only behaviour both apps must share. Intentional changes (bug fixes,
 new formats) are tested in the new app and listed in `docs/` (coming).

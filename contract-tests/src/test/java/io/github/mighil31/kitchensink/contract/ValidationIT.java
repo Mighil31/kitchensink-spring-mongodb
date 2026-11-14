@@ -43,13 +43,13 @@ class ValidationIT extends ContractTest {
                 arguments("R2D2", Set.of(NAME_PATTERN)));
     }
 
-    @ParameterizedTest(name = "name \"{0}\" -> 400")
+    @ParameterizedTest(name = "name {0} -> 400")
     @MethodSource("invalidNames")
     void invalidName_isRejected(String name, Set<String> allowedMessages) {
         assertOnlyFieldRejected("name", name, allowedMessages);
     }
 
-    @ParameterizedTest(name = "name \"{0}\" -> created")
+    @ParameterizedTest(name = "name {0} -> created")
     @ValueSource(strings = {"a", "abcdefghijklmnopqrstuvwxy", "Mary-Jane O'Neil"})
     void boundaryName_isAccepted(String name) {
         postExpectingCreated(memberWith("name", name));
@@ -61,7 +61,7 @@ class ValidationIT extends ContractTest {
                 arguments("not-an-email", Set.of(EMAIL_FORMAT)));
     }
 
-    @ParameterizedTest(name = "email \"{0}\" -> 400")
+    @ParameterizedTest(name = "email {0} -> 400")
     @MethodSource("invalidEmails")
     void invalidEmail_isRejected(String email, Set<String> allowedMessages) {
         assertOnlyFieldRejected("email", email, allowedMessages);
@@ -82,13 +82,13 @@ class ValidationIT extends ContractTest {
                 arguments("", Set.of(PHONE_SIZE, PHONE_DIGITS)));
     }
 
-    @ParameterizedTest(name = "phone \"{0}\" -> 400")
+    @ParameterizedTest(name = "phone {0} -> 400")
     @MethodSource("invalidPhones")
     void invalidPhone_isRejected(String phone, Set<String> allowedMessages) {
         assertOnlyFieldRejected("phoneNumber", phone, allowedMessages);
     }
 
-    @ParameterizedTest(name = "phone \"{0}\" -> created")
+    @ParameterizedTest(name = "phone {0} -> created")
     @ValueSource(strings = {"1234567890", "123456789012"})
     void boundaryPhone_isAccepted(String phone) {
         postExpectingCreated(memberWith("phoneNumber", phone));
