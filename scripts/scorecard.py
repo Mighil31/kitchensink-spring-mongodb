@@ -28,6 +28,9 @@ OUT = os.path.join(ROOT, "docs", "report", "index.html")
 REPORTS = os.path.join(ROOT, "contract-tests", "target", "failsafe-reports")
 PACKAGE = "io.github.mighil31.kitchensink.contract."
 TARGETS = (("legacy", "Legacy"), ("v2", "New app"))
+# Performance only: the new app with authentication but without bcrypt (a {noop} password), to show
+# what bcrypt costs per request (ADR 0010). Shown only once it has been run.
+PERF_TARGETS = TARGETS + (("v2-nobcrypt", "New app, auth without bcrypt"),)
 
 PERF_CAVEATS = [
     "Legacy uses in-memory H2 inside the app server's JVM; the new app talks to MongoDB over the network.",
@@ -106,6 +109,8 @@ def save_contract(args):
 # ---------- performance (Gatling console summaries) ----------
 
 SIMULATIONS = ("RegistrationSimulation", "LookupSimulation", "MixedSloSimulation")
+# ADR 0010: the new app passes if the mixed load at 50 req/s keeps p95 <= 300 ms and errors <= 1%.
+SLO = {"simulation": "MixedSloSimulation", "rps": 50, "p95Ms": 300, "errorRatePct": 1.0}
 GATLING_ROWS = {
     "request count": "requests",
     "response time 50th percentile (ms)": "p50Ms",
@@ -187,7 +192,6 @@ def save_perf(args):
         knee = step["rate"]
 
     path = os.path.join(DATA, f"perf-{args.name}.json")
-    previous = read_json(path) or {}
     data = {
         "label": args.label,
         "date": datetime.date.today().isoformat(),
@@ -197,8 +201,7 @@ def save_perf(args):
         "kneeCriteria": {"p95Ms": args.p95, "errorRatePct": args.errors},
         "kneeSteps": steps,
     }
-    if previous.get("slo"):
-        data["slo"] = previous["slo"]  # set by hand once the SLO is decided; keep it
+    data["slo"] = SLO
     os.makedirs(DATA, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
@@ -370,18 +373,19 @@ def perf_section(perf):
             f'<p><strong>SLO</strong>: <code>{esc(slo.get("simulation", "?"))}</code> at {fmt(slo.get("rps"), " req/s")}, '
             f'p95 &le; {fmt(slo.get("p95Ms"), " ms")}, errors &le; {fmt(slo.get("errorRatePct"), "%")}</p>')
 
+    targets = [(k, t) for k, t in PERF_TARGETS if k in dict(TARGETS) or perf.get(k)]
     names = []
-    for key, _ in TARGETS:
+    for key, _ in targets:
         for sim in (perf.get(key) or {}).get("simulations", []):
             if sim["name"] not in names:
                 names.append(sim["name"])
 
     rows = []
     for name in names:
-        for i, (key, title) in enumerate(TARGETS):
+        for i, (key, title) in enumerate(targets):
             run = perf.get(key)
             sim = next((s for s in (run or {}).get("simulations", []) if s["name"] == name), None)
-            first = f'<td rowspan="2" class="test"><code>{esc(name)}</code></td>' if i == 0 else ""
+            first = f'<td rowspan="{len(targets)}" class="test"><code>{esc(name)}</code></td>' if i == 0 else ""
             if sim is None:
                 rows.append(f'<tr>{first}<td>{esc(title)}</td><td colspan="6">{badge("pending", "pending")}</td></tr>')
                 continue
@@ -395,7 +399,7 @@ def perf_section(perf):
         + "".join(rows) + "</tbody></table></div>")
 
     knee_rows = []
-    for key, title in TARGETS:
+    for key, title in targets:
         run = perf.get(key) or {}
         if not run.get("kneeSteps"):
             continue
@@ -413,7 +417,7 @@ def perf_section(perf):
             f'<h3>Knee: highest load that still meets p95 &le; {fmt(knee_criteria.get("p95Ms"), " ms")} '
             f'and errors &le; {fmt(knee_criteria.get("errorRatePct"), "%")} (MixedSloSimulation, 60 s per level)</h3>'
             '<div class="scroll"><table class="perf"><tbody>' + "".join(knee_rows) + "</tbody></table></div>")
-    for key, title in TARGETS:
+    for key, title in targets:
         verdict = slo_verdict(perf.get(key) or {})
         if verdict is not None:
             parts.append(f"<p>{esc(title)}: {badge('pass' if verdict else 'fail', 'SLO met' if verdict else 'SLO missed')}</p>")
@@ -505,7 +509,7 @@ footer { color: var(--muted); font-size: 0.82rem; text-align: center; }
 
 def build(args):
     contract = {key: load_contract(args.data, key) for key, _ in TARGETS}
-    perf = {key: read_json(os.path.join(args.data, f"perf-{key}.json")) for key, _ in TARGETS}
+    perf = {key: read_json(os.path.join(args.data, f"perf-{key}.json")) for key, _ in PERF_TARGETS}
     deviations = read_json(os.path.join(args.data, "deviations.json"))
 
     page = f"""<!doctype html>
@@ -564,7 +568,7 @@ def main():
     save.set_defaults(func=save_contract)
 
     perf = sub.add_parser("save-perf", help="Summarize perf/run.sh logs into data/perf-<name>.json")
-    perf.add_argument("--name", required=True, choices=[k for k, _ in TARGETS])
+    perf.add_argument("--name", required=True, choices=[k for k, _ in PERF_TARGETS])
     perf.add_argument("--label", required=True)
     perf.add_argument("--results", help="Log folder (default perf/results/<name>)")
     perf.add_argument("--p95", type=float, default=300, help="Knee criterion: p95 limit in ms")

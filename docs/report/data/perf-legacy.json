@@ -88,5 +88,11 @@
       "errorRatePct": 0.0,
       "ok": true
     }
-  ]
+  ],
+  "slo": {
+    "simulation": "MixedSloSimulation",
+    "rps": 50,
+    "p95Ms": 300,
+    "errorRatePct": 1.0
+  }
 }

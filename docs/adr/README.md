@@ -14,7 +14,7 @@ Accepted ADRs are not edited; a changed decision gets a new ADR that supersedes 
 | [0007](0007-http-basic-on-rest-api.md) | HTTP Basic on all of `/rest/**`; UI stays public | Accepted |
 | [0008](0008-parity-suite-scope.md) | The contract suite asserts only behaviour both apps share | Accepted |
 | [0009](0009-keep-legacy-name-sort-order.md) | Keep legacy's case-sensitive name order | Accepted |
-| [0010](0010-performance-slo.md) | Judge performance against an absolute SLO, not legacy's numbers | Proposed |
+| [0010](0010-performance-slo.md) | Judge performance against an absolute SLO, not legacy's numbers | Accepted |
 | [0011](0011-flamingock-wiring-and-members-schema.md) | Flamingock on the plain driver; `members` validator and index details | Accepted |
 | [0012](0012-drop-member-registered-event.md) | Don't port legacy's member-registered CDI event | Accepted |
 

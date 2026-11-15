@@ -20,6 +20,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UserDetailsPasswordService;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
@@ -44,6 +46,9 @@ class SecurityConfigTest {
 
     @MockitoBean
     MemberRegistration registration;
+
+    @Autowired
+    UserDetailsService users;
 
     @Nested
     class Api {
@@ -114,6 +119,23 @@ class SecurityConfigTest {
                     .bodyJson()
                     .extractingPath("$.detail")
                     .isEqualTo("Access denied");
+        }
+
+        /**
+         * A login must not rewrite the stored password. Spring Security re-hashes passwords that aren't
+         * bcrypt if the user store lets it (UserDetailsPasswordService), which turned the performance
+         * run's {noop} password into bcrypt after the first request.
+         */
+        @Test
+        void loginDoesNotRewriteTheStoredPassword() {
+            String before = users.loadUserByUsername("test-client").getPassword();
+            given(repository.findAllByOrderByNameAsc()).willReturn(List.of());
+
+            assertThat(mvc.get().uri(MEMBERS).with(httpBasic("test-client", "test-password")))
+                    .hasStatusOk();
+
+            assertThat(users).isNotInstanceOf(UserDetailsPasswordService.class);
+            assertThat(users.loadUserByUsername("test-client").getPassword()).isEqualTo(before);
         }
 
         @Test

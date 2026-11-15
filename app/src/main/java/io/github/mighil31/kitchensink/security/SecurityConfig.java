@@ -1,5 +1,8 @@
 package io.github.mighil31.kitchensink.security;
 
+import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +25,8 @@ import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWrite
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(ApiClientProperties.class)
 public class SecurityConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
 
     static final String API_CLIENT = "API_CLIENT";
 
@@ -76,14 +81,34 @@ public class SecurityConfig {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
-    /** The single API client, held in memory. Real accounts are out of scope (ADR 0007). */
+    /**
+     * The single API client, held in memory. Real accounts are out of scope (ADR 0007).
+     *
+     * <p>A plain password is bcrypt-hashed here. One that already names its encoding ({@code
+     * {bcrypt}$2a$...}) is used as given, so production can hold only the hash. {@code {noop}...}
+     * (stored and compared as plain text) exists for one purpose: the performance attribution run,
+     * which keeps authentication on every request but without bcrypt, to measure what bcrypt
+     * costs (ADR 0010). It logs a warning, since it should never be seen anywhere else.
+     */
     @Bean
     UserDetailsService apiClients(ApiClientProperties client, PasswordEncoder encoder) {
-        String password =
-                client.password().startsWith("{bcrypt}") ? client.password() : encoder.encode(client.password());
-        return new InMemoryUserDetailsManager(User.withUsername(client.username())
+        String password = client.password();
+        if (password.startsWith("{noop}")) {
+            log.warn("API client password is stored as plain text ({noop}): only for performance runs");
+        } else if (!ENCODED.matcher(password).lookingAt()) {
+            password = encoder.encode(password);
+        }
+        InMemoryUserDetailsManager users = new InMemoryUserDetailsManager(User.withUsername(client.username())
                 .password(password)
                 .roles(API_CLIENT)
                 .build());
+        // Only the lookup is exposed. InMemoryUserDetailsManager is also a UserDetailsPasswordService,
+        // and Spring Security uses that to re-hash a password not stored in its preferred encoding
+        // after a successful login: {noop} would silently become bcrypt on the first request. The
+        // configured password must stay exactly as configured.
+        return users::loadUserByUsername;
     }
+
+    /** The {@code {id}} prefix DelegatingPasswordEncoder uses to pick the algorithm. */
+    private static final Pattern ENCODED = Pattern.compile("\\{(bcrypt|noop)}");
 }

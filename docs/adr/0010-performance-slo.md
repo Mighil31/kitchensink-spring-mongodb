@@ -1,6 +1,6 @@
 # 0010. Judge performance against an absolute SLO
 
-**Status:** Proposed (2026-11-14). The load level is still to be decided.
+**Status:** Accepted (2026-11-15). Proposed 2026-11-14; load level decided 2026-11-15.
 
 ## Context
 
@@ -18,11 +18,24 @@ than legacy" would fail for structural reasons, not regressions.
   errors ≤ 1%**.
 - The difference from legacy is reported as context, explained by attribution runs (the new app
   with and without auth isolates bcrypt's cost).
-- **Open:** the SLO load level. The original plan, ~50% of legacy's knee, would mean 3,200+ req/s,
-  unrealistic for a sign-up form. Proposal: 50 req/s steady, plus a headroom check at a few
-  hundred req/s.
+- **Load level: 50 req/s steady**, the rate legacy's measured runs used, so the two compare
+  directly. The original plan, ~50% of legacy's knee, would have meant 3,200+ req/s, unrealistic
+  for a sign-up form. Headroom above it is shown by the knee run (rising levels until the SLO
+  breaks), not judged.
+- **Attribution run:** the same app with the API password configured as `{noop}...`, so every
+  request is still authenticated, only without bcrypt. No switch that turns security off exists
+  in the shipped app.
 
 ## Consequences
+
+- First quick runs (10–20 req/s, 2026-11-15): p95 about 50 ms with bcrypt, about 5 ms without.
+  bcrypt at its default cost (10) is roughly 45 ms of CPU per API request, which caps the API at
+  about (CPU cores ÷ 0.045 s) requests per second however fast MongoDB is. Options if that matters:
+  cache successful credential checks briefly, lower the cost factor, or move to tokens (OAuth2/JWT,
+  ADR 0007 next steps), where each request checks a signature instead of a password hash.
+- Found while setting up the attribution run: Spring Security re-hashes a password stored in a
+  non-preferred encoding after a successful login, if the user store allows it. That turned `{noop}`
+  into bcrypt on the first request. The API user store now exposes only the lookup.
 
 - The SLO becomes Gatling assertions on the mixed simulation: the performance gate for the new app.
 - A fair like-for-like comparison would need legacy on a networked database (e.g. Postgres in

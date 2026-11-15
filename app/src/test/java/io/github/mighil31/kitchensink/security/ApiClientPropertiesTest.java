@@ -57,6 +57,22 @@ class ApiClientPropertiesTest {
         assertThat(clientWithPassword(hash).getPassword()).isEqualTo(hash);
     }
 
+    /** Performance attribution run only (ADR 0010): authentication without bcrypt's cost. */
+    @Test
+    void noopPasswordIsUsedAsIsAndStillChecked() {
+        UserDetails user = clientWithPassword("{noop}s3cret");
+
+        assertThat(user.getPassword()).isEqualTo("{noop}s3cret");
+        assertThat(PasswordEncoderFactories.createDelegatingPasswordEncoder().matches("s3cret", user.getPassword()))
+                .isTrue();
+    }
+
+    /** Only the two known prefixes count; anything else is a plain password and gets hashed. */
+    @Test
+    void otherBracePrefixesAreTreatedAsPlainPasswords() {
+        assertThat(clientWithPassword("{sha256}abc").getPassword()).startsWith("{bcrypt}$2");
+    }
+
     private static UserDetails clientWithPassword(String password) {
         SecurityConfig config = new SecurityConfig();
         return config.apiClients(new ApiClientProperties("client", password), config.passwordEncoder())
