@@ -13,6 +13,7 @@ to Spring Boot (Java 21) and MongoDB.
 | `compose.yaml`, `docker/` | Local stack: MongoDB with auth + the app. |
 | `contract-tests/` | Black-box HTTP suite capturing the legacy API's core behaviour. Runs against legacy now and against the new app later; only config changes. |
 | `docs/adr/` | Architecture Decision Records: one page per significant decision. |
+| [`docs/gap-analysis.md`](docs/gap-analysis.md) | The 67 gaps found in legacy (bugs, security, API, data, operations, testing, UI, platform) and what happened to each. |
 | [`docs/data-migration.md`](docs/data-migration.md) | How member data would move from legacy to MongoDB (transform spec, reconciliation) and the at-scale strategy. |
 | [`docs/cutover-runbook.md`](docs/cutover-runbook.md) | How traffic would move from legacy to the new app, and how to roll back. |
 | `docs/report/` | **Migration scorecard**: one page comparing legacy and the new app (contract parity, performance vs SLO, intentional changes). |
