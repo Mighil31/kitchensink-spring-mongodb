@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="#{page.title}">kitchensink</title>
+    <link rel="stylesheet" th:href="@{/css/screen.css}">
+</head>
+<body>
+<main>
+    <h1 th:text="#{memberWelcomeHeader}">Welcome</h1>
+    <p th:text="#{memberWelcomeMessage}"></p>
+
+    <!-- th:action, not action: Spring Security adds its CSRF token here once it's on the classpath. -->
+    <form id="reg" method="post" th:action="@{/}" th:object="${newMember}" novalidate>
+        <h2 th:text="#{memberRegistrationHeader}">Member Registration</h2>
+        <p th:text="#{memberFormDescription}"></p>
+
+        <div class="field">
+            <label for="name" th:text="#{memberNameLabel}">Name:</label>
+            <input type="text" th:field="*{name}">
+            <span class="invalid" th:if="${#fields.hasErrors('name')}" th:text="${#fields.errors('name')[0]}"></span>
+        </div>
+        <div class="field">
+            <label for="email" th:text="#{memberEmailLabel}">Email:</label>
+            <input type="text" th:field="*{email}">
+            <span class="invalid" th:if="${#fields.hasErrors('email')}" th:text="${#fields.errors('email')[0]}"></span>
+        </div>
+        <div class="field">
+            <label for="phoneNumber" th:text="#{memberPhoneLabel}">Phone #:</label>
+            <input type="text" th:field="*{phoneNumber}">
+            <span class="invalid" th:if="${#fields.hasErrors('phoneNumber')}" th:text="${#fields.errors('phoneNumber')[0]}"></span>
+        </div>
+
+        <div class="actions">
+            <button type="submit" id="register" class="register" th:text="#{memberRegisterButtonLabel}">Register</button>
+            <span class="valid" th:if="${registered}" th:text="#{registeredMessage}" role="status"></span>
+        </div>
+    </form>
+
+    <h2 th:text="#{membersHeader}">Members</h2>
+    <em th:if="${#lists.isEmpty(members)}" th:text="#{noMembers}">No registered members.</em>
+    <div class="scroll" th:unless="${#lists.isEmpty(members)}">
+        <table class="members">
+            <thead>
+            <tr>
+                <th th:text="#{memberIdHeader}">ID</th>
+                <th th:text="#{memberNameHeader}">Name</th>
+                <th th:text="#{memberEmailHeader}">Email</th>
+                <th th:text="#{memberPhoneHeader}">Phone #</th>
+                <th th:text="#{memberRestUrl}">REST URL</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="member : ${members}">
+                <td><code th:text="${member.id}"></code></td>
+                <td th:text="${member.name}"></td>
+                <td th:text="${member.email}"></td>
+                <td th:text="${member.phoneNumber}"></td>
+                <td><a th:href="@{/rest/members/{id}(id=${member.id})}" th:text="|/rest/members/${member.id}|"></a></td>
+            </tr>
+            </tbody>
+            <tfoot>
+            <tr>
+                <td colspan="5">
+                    <span th:text="#{memberRestUrlAllLabel}"></span>
+                    <a th:href="@{/rest/members}">/rest/members</a>
+                </td>
+            </tr>
+            </tfoot>
+        </table>
+    </div>
+</main>
+</body>
+</html>

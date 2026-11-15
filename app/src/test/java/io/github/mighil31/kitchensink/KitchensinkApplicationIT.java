@@ -43,4 +43,25 @@ class KitchensinkApplicationIT {
         assertThat(response.statusCode()).isEqualTo(200);
         assertThat(response.body()).contains("\"status\":\"UP\"");
     }
+
+    /** Post/Redirect/Get through the real server: the redirect must not carry the session id. */
+    @Test
+    void registrationRedirectKeepsSessionIdOutOfTheUrl() throws Exception {
+        HttpResponse<String> response = HttpClient.newHttpClient()
+                .send(
+                        HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/"))
+                                .header("Content-Type", "application/x-www-form-urlencoded")
+                                .POST(HttpRequest.BodyPublishers.ofString("name=Ann+Lee&email=prg-" + System.nanoTime()
+                                        + "%40example.com" + "&phoneNumber=2125550000"))
+                                .build(),
+                        HttpResponse.BodyHandlers.ofString());
+
+        assertThat(response.statusCode()).isEqualTo(302);
+        assertThat(response.headers().firstValue("Location"))
+                .hasValueSatisfying(
+                        location -> assertThat(location).endsWith("/").doesNotContainIgnoringCase("jsessionid"));
+        assertThat(response.headers().allValues("Set-Cookie"))
+                .anySatisfy(
+                        cookie -> assertThat(cookie).startsWith("JSESSIONID=").contains("HttpOnly"));
+    }
 }
