@@ -37,18 +37,17 @@ public class MemberRestController {
     /**
      * 404 for an unknown id and for one that isn't an ObjectId at all ({@code abc}, {@code -1}),
      * as legacy returned 404 for anything outside its {@code [0-9]+} path pattern (ADR 0002). The
-     * empty body matches legacy until errors move to ProblemDetail (ADR 0003).
+     * body is a ProblemDetail ({@link MemberApiExceptionHandler}); legacy's was empty.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<MemberResponse> lookupMemberById(@PathVariable String id) {
+    public MemberResponse lookupMemberById(@PathVariable String id) {
         if (!ObjectId.isValid(id)) {
-            return ResponseEntity.notFound().build();
+            throw new MemberNotFoundException();
         }
         return repository
                 .findById(new ObjectId(id))
                 .map(MemberResponse::from)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseThrow(MemberNotFoundException::new);
     }
 
     /**

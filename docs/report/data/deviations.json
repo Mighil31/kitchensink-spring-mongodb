@@ -25,7 +25,7 @@
       "new": "RFC 9457 ProblemDetail with an errors map",
       "source": "ADR 0003",
       "status": "decided",
-      "verifiedBy": null
+      "verifiedBy": "MemberRestControllerTest.invalidBodyIs400ProblemWithFieldErrors"
     },
     {
       "id": "ADR-0007",
@@ -70,7 +70,7 @@
       "new": "400 ProblemDetail, no internals",
       "source": "Gap Analysis B5, B17 · ADR 0003",
       "status": "decided",
-      "verifiedBy": null
+      "verifiedBy": "MemberRestControllerTest.unreadableBodyIs400ProblemWithoutInternals"
     },
     {
       "id": "B6",
@@ -79,7 +79,7 @@
       "new": "400 ProblemDetail, no internals",
       "source": "Gap Analysis B6 · ADR 0003",
       "status": "decided",
-      "verifiedBy": null
+      "verifiedBy": "MemberRestControllerTest.missingBodyIs400ProblemWithoutValidatorCodes"
     },
     {
       "id": "B14",

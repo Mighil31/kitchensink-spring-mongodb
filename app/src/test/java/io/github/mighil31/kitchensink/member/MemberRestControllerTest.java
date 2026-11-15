@@ -7,17 +7,22 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import com.jayway.jsonpath.JsonPath;
 import io.github.mighil31.kitchensink.security.SecurityConfig;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -30,6 +35,7 @@ import org.springframework.test.web.servlet.assertj.MvcTestResult;
 @WebMvcTest(MemberRestController.class)
 @Import(SecurityConfig.class)
 @WithMockUser(roles = "API_CLIENT")
+@ExtendWith(OutputCaptureExtension.class)
 class MemberRestControllerTest {
 
     static final ObjectId JANE_ID = new ObjectId("65f0c0ffee0000000000abcd");
@@ -79,21 +85,53 @@ class MemberRestControllerTest {
     }
 
     @Test
-    void unknownIdIs404WithEmptyBody() {
+    void unknownIdIs404Problem() {
         given(repository.findById(any(ObjectId.class))).willReturn(Optional.empty());
 
         assertThat(mvc.get().uri("/rest/members/{id}", "000000000000000000000000"))
                 .hasStatus(HttpStatus.NOT_FOUND)
-                .body()
-                .isEmpty();
+                .hasContentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .isLenientlyEqualTo("""
+                        {"title": "Not Found", "status": 404, "detail": "Member not found",
+                         "instance": "/rest/members/000000000000000000000000"}
+                        """);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"abc", "-1", "1.5", "0x1", "0", "65f0c0ffee0000000000abc"})
-    void malformedIdIs404WithoutQuerying(String id) {
-        assertThat(mvc.get().uri("/rest/members/{id}", id)).hasStatus(HttpStatus.NOT_FOUND);
+    void malformedIdIs404ProblemWithoutQuerying(String id) {
+        assertThat(mvc.get().uri("/rest/members/{id}", id))
+                .hasStatus(HttpStatus.NOT_FOUND)
+                .bodyJson()
+                .extractingPath("$.detail")
+                .isEqualTo("Member not found");
 
         verify(repository, never()).findById(any());
+    }
+
+    /** The client sees a generic message and an id; the log has the same id and the cause. */
+    @Test
+    void unexpectedErrorIs500ProblemWithTraceIdAndNoInternals(CapturedOutput log) throws Exception {
+        given(repository.findAllByOrderByNameAsc())
+                .willThrow(new DataAccessResourceFailureException("Timed out connecting to mongo:27017"));
+
+        MvcTestResult result = mvc.get().uri("/rest/members").exchange();
+
+        assertThat(result)
+                .hasStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+                .hasContentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .isLenientlyEqualTo("""
+                        {"title": "Internal Server Error", "status": 500, "detail": "Unexpected error",
+                         "instance": "/rest/members"}
+                        """);
+        assertThat(result).bodyText().doesNotContain("mongo", "Exception", "27017");
+        String traceId = JsonPath.read(result.getResponse().getContentAsString(), "$.traceId");
+        assertThat(traceId).matches("[0-9a-f]{32}");
+        assertThat(log.getOut())
+                .contains("traceId=" + traceId)
+                .contains("DataAccessResourceFailureException: Timed out connecting to mongo:27017");
     }
 
     static final String VALID_BODY = """
@@ -184,13 +222,27 @@ class MemberRestControllerTest {
                         """);
     }
 
-    @Test
-    void malformedJsonIs400ProblemWithoutInternals() {
-        assertThat(post("{\"name\": "))
+    /** Gaps B5 and B17: legacy answered 500 with RESTEasy / JSON-B internals. */
+    @ParameterizedTest
+    @ValueSource(strings = {"{\"name\": ", "[]", "[{}]", "\"text\""})
+    void unreadableBodyIs400ProblemWithoutInternals(String body) {
+        assertThat(post(body))
                 .hasStatus(HttpStatus.BAD_REQUEST)
                 .hasContentType(MediaType.APPLICATION_PROBLEM_JSON)
                 .bodyText()
-                .doesNotContain("Exception", "jackson", "at [Source");
+                .contains("\"detail\":\"Failed to read request\"")
+                .doesNotContain("Exception", "jackson", "MemberRequest", "at [Source");
+    }
+
+    /** Gap B6: legacy answered 400 with Hibernate Validator's code HV000116. */
+    @ParameterizedTest
+    @ValueSource(strings = {"null", ""})
+    void missingBodyIs400ProblemWithoutValidatorCodes(String body) {
+        assertThat(post(body))
+                .hasStatus(HttpStatus.BAD_REQUEST)
+                .hasContentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyText()
+                .doesNotContain("HV0", "Exception", "MemberRequest");
     }
 
     @Test
