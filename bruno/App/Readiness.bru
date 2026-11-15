@@ -1,0 +1,27 @@
+meta {
+  name: Readiness
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{appUrl}}/readyz
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("is UP", function() {
+    expect(res.getBody().status).to.equal("UP");
+  });
+}
+
+docs {
+  Readiness probe, public (no credentials): UP when the app can serve requests, MongoDB included.
+  `/livez` is the liveness probe. Metrics and the rest of Actuator are on the internal management
+  port (9091), not here. Not on legacy.
+}

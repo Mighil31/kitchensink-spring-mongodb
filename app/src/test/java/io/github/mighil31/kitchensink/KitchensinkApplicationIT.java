@@ -10,19 +10,23 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.bson.Document;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.health.actuate.endpoint.HealthEndpointGroups;
+import org.springframework.boot.micrometer.metrics.test.autoconfigure.AutoConfigureMetrics;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
-/** Walking skeleton: the app starts, reaches MongoDB and reports healthy. */
+/** The whole app on a real server: MongoDB, probes, metrics, security and the registration flow. */
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMetrics // tests switch metrics export off by default; this one checks the Prometheus endpoint
 class KitchensinkApplicationIT {
 
     @Autowired
@@ -31,6 +35,12 @@ class KitchensinkApplicationIT {
     @Value("${local.server.port}")
     int port;
 
+    @Value("${local.management.port}")
+    int managementPort;
+
+    @Autowired
+    HealthEndpointGroups healthGroups;
+
     @Test
     void connectsToMongo() {
         Document reply = mongoTemplate.executeCommand(new Document("ping", 1));
@@ -38,16 +48,54 @@ class KitchensinkApplicationIT {
         assertThat(reply.get("ok")).isIn(1, 1.0);
     }
 
+    /** Probes for the load balancer or Kubernetes, on the public port. */
     @Test
-    void healthEndpointReportsUp() throws Exception {
-        HttpResponse<String> response = HttpClient.newHttpClient()
-                .send(
-                        HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/actuator/health"))
-                                .build(),
-                        HttpResponse.BodyHandlers.ofString());
+    void probesAreOnThePublicPort() throws Exception {
+        for (String probe : List.of("/livez", "/readyz")) {
+            HttpResponse<String> response =
+                    HttpClient.newHttpClient().send(request(probe).build(), BODY);
 
-        assertThat(response.statusCode()).isEqualTo(200);
-        assertThat(response.body()).contains("\"status\":\"UP\"");
+            assertThat(response.statusCode()).as(probe).isEqualTo(200);
+            assertThat(response.body()).as(probe).contains("\"status\":\"UP\"");
+        }
+    }
+
+    /** Ready means MongoDB is reachable; alive doesn't depend on it (a restart wouldn't fix it). */
+    @Test
+    void readinessIncludesMongoAndLivenessDoesNot() {
+        assertThat(healthGroups.get("readiness").isMember("mongo")).isTrue();
+        assertThat(healthGroups.get("liveness").isMember("mongo")).isFalse();
+    }
+
+    /** Metrics are scraped from the internal management port; the public port doesn't serve them. */
+    @Test
+    void metricsOnlyOnTheManagementPort() throws Exception {
+        HttpClient client = HttpClient.newHttpClient();
+        client.send(request("/readyz").build(), BODY); // at least one request to count
+
+        HttpResponse<String> internal = client.send(
+                HttpRequest.newBuilder(URI.create("http://localhost:" + managementPort + "/actuator/prometheus"))
+                        .build(),
+                BODY);
+        assertThat(internal.statusCode()).isEqualTo(200);
+        assertThat(internal.body()).contains("http_server_requests_seconds_count");
+
+        for (String path : List.of("/actuator/prometheus", "/actuator/health")) {
+            assertThat(client.send(request(path).build(), BODY).statusCode())
+                    .as("public " + path)
+                    .isEqualTo(404);
+        }
+    }
+
+    /** Every response carries the request id, including errors from the security filters. */
+    @Test
+    void responsesCarryARequestId() throws Exception {
+        HttpResponse<String> unauthorized =
+                HttpClient.newHttpClient().send(request("/rest/members").build(), BODY);
+
+        assertThat(unauthorized.statusCode()).isEqualTo(401);
+        assertThat(unauthorized.headers().firstValue("X-Request-Id"))
+                .hasValueSatisfying(id -> assertThat(id).matches("[0-9a-f]{32}"));
     }
 
     /**

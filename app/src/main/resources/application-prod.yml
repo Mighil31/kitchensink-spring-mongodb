@@ -7,3 +7,9 @@ server:
     session:
       cookie:
         secure: true
+
+logging:
+  structured:
+    format:
+      # One JSON object per line (Elastic Common Schema) for the log pipeline; includes the requestId.
+      console: ecs

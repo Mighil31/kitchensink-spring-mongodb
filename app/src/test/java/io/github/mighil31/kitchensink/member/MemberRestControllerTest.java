@@ -111,9 +111,9 @@ class MemberRestControllerTest {
         verify(repository, never()).findById(any());
     }
 
-    /** The client sees a generic message and an id; the log has the same id and the cause. */
+    /** The client sees a generic message and the request id; the log line has the same id and the cause. */
     @Test
-    void unexpectedErrorIs500ProblemWithTraceIdAndNoInternals(CapturedOutput log) throws Exception {
+    void unexpectedErrorIs500ProblemWithRequestIdAndNoInternals(CapturedOutput log) throws Exception {
         given(repository.findAllByOrderByNameAscIdAsc())
                 .willThrow(new DataAccessResourceFailureException("Timed out connecting to mongo:27017"));
 
@@ -128,10 +128,11 @@ class MemberRestControllerTest {
                          "instance": "/rest/members"}
                         """);
         assertThat(result).bodyText().doesNotContain("mongo", "Exception", "27017");
-        String traceId = JsonPath.read(result.getResponse().getContentAsString(), "$.traceId");
-        assertThat(traceId).matches("[0-9a-f]{32}");
+        String requestId = JsonPath.read(result.getResponse().getContentAsString(), "$.requestId");
+        assertThat(requestId).matches("[0-9a-f]{32}");
+        assertThat(result).hasHeader("X-Request-Id", requestId);
         assertThat(log.getOut())
-                .contains("traceId=" + traceId)
+                .contains("[" + requestId + "]")
                 .contains("DataAccessResourceFailureException: Timed out connecting to mongo:27017");
     }
 

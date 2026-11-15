@@ -11,5 +11,5 @@ RUN useradd --system --uid 10001 app
 WORKDIR /app
 COPY --from=build /src/target/kitchensink-app-*.jar app.jar
 USER app
-EXPOSE 8081
+EXPOSE 8081 9091
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]

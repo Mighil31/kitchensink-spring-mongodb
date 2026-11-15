@@ -38,11 +38,27 @@ kitchensink:
     password: ${KITCHENSINK_API_PASSWORD:}
 
 management:
+  # Actuator lives on its own port, which the gateway never exposes: metrics and other operational
+  # endpoints stay internal. Only the probes below are also on the public port.
+  server:
+    port: ${MANAGEMENT_PORT:9091}
   endpoints:
     web:
       exposure:
-        include: health, info
+        include: health, info, prometheus
   endpoint:
     health:
       probes:
         enabled: true
+        # /livez and /readyz on the main port, for the load balancer or Kubernetes.
+        add-additional-paths: true
+      group:
+        # Ready = can serve requests, so MongoDB counts. Liveness doesn't include it: restarting the
+        # app doesn't fix the database.
+        readiness:
+          include: readinessState, mongo
+
+logging:
+  pattern:
+    # The request id (RequestIdFilter) on every log line written while handling a request.
+    correlation: "[%X{requestId:-}] "

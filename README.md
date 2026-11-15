@@ -26,7 +26,7 @@ Prerequisites: Java 21, Maven, Docker.
 ```bash
 # Whole stack in Docker
 cp .env.example .env              # then change the passwords (MongoDB and the API client)
-docker compose up --build         # http://localhost:8081/actuator/health
+docker compose up --build         # http://localhost:8081, probes at /livez and /readyz
 
 # Or just the app, with a throwaway MongoDB from Testcontainers
 mvn -pl app spring-boot:test-run
@@ -59,6 +59,18 @@ The password is bcrypt-hashed at startup; `KITCHENSINK_API_PASSWORD` may also ho
 401 as a ProblemDetail. All responses carry a strict Content-Security-Policy, Referrer-Policy and
 Permissions-Policy. The `prod` profile marks the session cookie `Secure` and trusts the TLS proxy's
 `X-Forwarded-Proto`, so HSTS is sent.
+
+### Observability
+
+- **Probes** on the app's port: `/livez` (the process is up) and `/readyz` (it can serve requests:
+  includes MongoDB).
+- **Actuator on an internal port** (`MANAGEMENT_PORT`, default 9091), never exposed by the gateway:
+  `/actuator/health`, `/actuator/info`, `/actuator/prometheus` for metrics.
+- **Request id:** every response has an `X-Request-Id` header (reused from the gateway when it sends
+  one), and every log line written for that request carries it, so one id finds all of them. A 500's
+  body has the same id as `requestId`.
+- **Logs** are plain text locally and JSON (Elastic Common Schema) with the `prod` profile.
+- Index use is checked by `MemberRepositoryIT.listSortUsesTheNameIdIndex` (`explain()`, no in-memory sort).
 
 ## Trying the API by hand (Bruno)
 

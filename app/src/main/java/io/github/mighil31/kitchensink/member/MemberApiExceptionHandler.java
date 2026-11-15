@@ -1,11 +1,12 @@
 package io.github.mighil31.kitchensink.member;
 
+import io.github.mighil31.kitchensink.web.RequestIdFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -71,15 +72,15 @@ class MemberApiExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     /**
-     * The client gets a generic message and an id; the log gets the same id with the full
-     * exception, so a reported error can be found without exposing internals.
+     * The client gets a generic message and the request id; the log line has the same id (every
+     * line of the request does, see {@link RequestIdFilter}) and the full exception, so a reported
+     * error can be found without exposing internals.
      */
     @ExceptionHandler
     ProblemDetail unexpected(Exception ex, HttpServletRequest request) {
-        String traceId = UUID.randomUUID().toString().replace("-", "");
-        log.error("Unexpected error on {} {} [traceId={}]", request.getMethod(), request.getRequestURI(), traceId, ex);
+        log.error("Unexpected error on {} {}", request.getMethod(), request.getRequestURI(), ex);
         ProblemDetail body = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error");
-        body.setProperty("traceId", traceId);
+        body.setProperty("requestId", MDC.get(RequestIdFilter.MDC_KEY));
         return body;
     }
 
