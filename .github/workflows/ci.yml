@@ -24,7 +24,7 @@ jobs:
         run: mvn -B verify
       - name: Coverage report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage
           path: app/target/site/jacoco/
@@ -83,7 +83,7 @@ jobs:
           -Dcontract.user=contract-client
       - name: Contract reports and app log
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: contract-v2
           path: |
