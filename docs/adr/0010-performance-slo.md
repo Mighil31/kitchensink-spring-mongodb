@@ -28,6 +28,11 @@ than legacy" would fail for structural reasons, not regressions.
 
 ## Consequences
 
+- **Full runs (2026-11-15), all on one 12-thread machine:** the new app **meets the SLO**: p95
+  49 ms at 50 req/s with 0% errors (median of 3 runs, every simulation), and it holds the SLO up to
+  200 req/s (breaks before 400). The same app authenticated without bcrypt (`{noop}`): p95 1 ms and
+  no break up to 6,400 req/s, like legacy. bcrypt on every request is effectively the whole cost.
+  A Grafana run (compose profile `observability`) shows CPU at about 95% at the bcrypt ceiling.
 - First quick runs (10–20 req/s, 2026-11-15): p95 about 50 ms with bcrypt, about 5 ms without.
   bcrypt at its default cost (10) is roughly 45 ms of CPU per API request, which caps the API at
   about (CPU cores ÷ 0.045 s) requests per second however fast MongoDB is. Options if that matters:

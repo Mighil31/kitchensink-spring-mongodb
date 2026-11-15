@@ -1,0 +1,74 @@
+{
+  "label": "Spring Boot 4.1.2 + MongoDB 8.0, HTTP Basic (bcrypt)",
+  "date": "2026-11-15",
+  "simulations": [
+    {
+      "name": "RegistrationSimulation",
+      "runs": 3,
+      "rps": 49.72,
+      "requests": 9000,
+      "p50Ms": 47.0,
+      "p95Ms": 49.0,
+      "p99Ms": 50.0,
+      "errorRatePct": 0.0
+    },
+    {
+      "name": "LookupSimulation",
+      "runs": 3,
+      "rps": 49.72,
+      "requests": 9000,
+      "p50Ms": 47.0,
+      "p95Ms": 49.0,
+      "p99Ms": 50.0,
+      "errorRatePct": 0.0
+    },
+    {
+      "name": "MixedSloSimulation",
+      "runs": 3,
+      "rps": 49.72,
+      "requests": 9000,
+      "p50Ms": 47.0,
+      "p95Ms": 49.0,
+      "p99Ms": 50.0,
+      "errorRatePct": 0.0
+    }
+  ],
+  "kneeRps": 200,
+  "kneeBroken": 400,
+  "kneeCriteria": {
+    "p95Ms": 300,
+    "errorRatePct": 1.0
+  },
+  "kneeSteps": [
+    {
+      "rate": 50,
+      "p95Ms": 49.0,
+      "errorRatePct": 0.0,
+      "ok": true
+    },
+    {
+      "rate": 100,
+      "p95Ms": 50.0,
+      "errorRatePct": 0.0,
+      "ok": true
+    },
+    {
+      "rate": 200,
+      "p95Ms": 108.0,
+      "errorRatePct": 0.0,
+      "ok": true
+    },
+    {
+      "rate": 400,
+      "p95Ms": 60000.0,
+      "errorRatePct": 15.31,
+      "ok": false
+    }
+  ],
+  "slo": {
+    "simulation": "MixedSloSimulation",
+    "rps": 50,
+    "p95Ms": 300,
+    "errorRatePct": 1.0
+  }
+}

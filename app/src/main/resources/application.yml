@@ -38,6 +38,11 @@ kitchensink:
     password: ${KITCHENSINK_API_PASSWORD:}
 
 management:
+  metrics:
+    distribution:
+      # Latency histogram buckets, so Prometheus can compute p95 across requests and instances.
+      percentiles-histogram:
+        http.server.requests: true
   # Actuator lives on its own port, which the gateway never exposes: metrics and other operational
   # endpoints stay internal. Only the probes below are also on the public port.
   server:

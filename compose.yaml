@@ -40,5 +40,33 @@ services:
       mongo:
         condition: service_healthy
 
+  # Optional: docker compose --profile observability up
+  # Prometheus scrapes the app's internal port; Grafana shows one dashboard (5 panels).
+  prometheus:
+    image: prom/prometheus:v3.1.0
+    profiles: [observability]
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "127.0.0.1:9090:9090"
+    depends_on:
+      - app
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    profiles: [observability]
+    environment:
+      # Local only (bound to 127.0.0.1): open the dashboard without logging in, read-only.
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/kitchensink.json
+    volumes:
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - prometheus
+
 volumes:
   mongo-data:

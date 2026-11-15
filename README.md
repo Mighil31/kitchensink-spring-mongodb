@@ -71,6 +71,9 @@ Permissions-Policy. The `prod` profile marks the session cookie `Secure` and tru
   body has the same id as `requestId`.
 - **Logs** are plain text locally and JSON (Elastic Common Schema) with the `prod` profile.
 - Index use is checked by `MemberRepositoryIT.listSortUsesTheNameIdIndex` (`explain()`, no in-memory sort).
+- **Dashboard (optional):** `docker compose --profile observability up` adds Prometheus
+  (http://localhost:9090) and Grafana (http://localhost:3000, no login, read-only) with one dashboard:
+  request rate, p95 latency against the 300 ms SLO, error rate, app CPU and MongoDB connections.
 
 ## Trying the API by hand (Bruno)
 
