@@ -51,9 +51,18 @@ jobs:
           cache: maven
       - name: Package the app
         run: mvn -B -pl app package -DskipTests
+      # The API needs HTTP Basic (ADR 0007). The app only lives for this job, so a random password
+      # made here is enough: no repository secret to manage. Masked so it never shows in the log.
+      - name: API client password for this run
+        run: |
+          password=$(openssl rand -hex 24)
+          echo "::add-mask::$password"
+          echo "CONTRACT_PASSWORD=$password" >> "$GITHUB_ENV"
       - name: Start the app and wait until ready
         env:
           MONGODB_URI: mongodb://localhost:27017/kitchensink
+          KITCHENSINK_API_USERNAME: contract-client
+          KITCHENSINK_API_PASSWORD: ${{ env.CONTRACT_PASSWORD }}
         run: |
           java -jar app/target/kitchensink-app-*.jar > app.log 2>&1 &
           for i in $(seq 1 60); do
@@ -62,11 +71,16 @@ jobs:
           done
           cat app.log
           exit 1
-      # Phase 5 (HTTP Basic, ADR 0007) adds -Dcontract.user=… and env CONTRACT_PASSWORD.
+      - name: API rejects requests without credentials
+        run: |
+          status=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8081/rest/members)
+          echo "GET /rest/members without credentials: $status"
+          test "$status" = 401
       - name: Contract suite against the new app
         run: >-
           mvn -B -pl contract-tests verify -Pcontract
           -Dcontract.format=v2 -Dcontract.baseUrl=http://localhost:8081/rest
+          -Dcontract.user=contract-client
       - name: Contract reports and app log
         if: always()
         uses: actions/upload-artifact@v4

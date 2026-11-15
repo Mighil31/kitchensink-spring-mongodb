@@ -11,7 +11,7 @@
     <h1 th:text="#{memberWelcomeHeader}">Welcome</h1>
     <p th:text="#{memberWelcomeMessage}"></p>
 
-    <!-- th:action, not action: Spring Security adds its CSRF token here once it's on the classpath. -->
+    <!-- th:action, not action: that's how Spring Security adds its CSRF token to the form. -->
     <form id="reg" method="post" th:action="@{/}" th:object="${newMember}" novalidate>
         <h2 th:text="#{memberRegistrationHeader}">Member Registration</h2>
         <p th:text="#{memberFormDescription}"></p>

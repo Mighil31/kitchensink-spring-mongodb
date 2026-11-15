@@ -23,7 +23,7 @@ Prerequisites: Java 21, Maven, Docker.
 
 ```bash
 # Whole stack in Docker
-cp .env.example .env              # then change the passwords
+cp .env.example .env              # then change the passwords (MongoDB and the API client)
 docker compose up --build         # http://localhost:8081/actuator/health
 
 # Or just the app, with a throwaway MongoDB from Testcontainers
@@ -37,6 +37,27 @@ Both local options run with the `dev` profile, which seeds legacy's John Smith m
 (collection, validator, indexes) comes from Flamingock migrations in
 `app/src/main/java/.../migration/`, applied at startup; see ADRs 0005, 0006 and 0011.
 
+### Security (ADR 0007)
+
+The registration page is public, as on legacy, with a CSRF token on its form. The REST API
+(`/rest/**`, reads too) needs HTTP Basic as its one client:
+
+| Run | Username / password |
+|---|---|
+| `docker compose up` | `API_USER` / `API_PASSWORD` from `.env` |
+| `spring-boot:test-run` | `test-client` / `test-password` (test classpath only) |
+| Anywhere else | env `KITCHENSINK_API_USERNAME` / `KITCHENSINK_API_PASSWORD`; the app won't start without them |
+
+```bash
+curl -u test-client:test-password http://localhost:8081/rest/members
+```
+
+The password is bcrypt-hashed at startup; `KITCHENSINK_API_PASSWORD` may also hold the hash itself
+(`{bcrypt}$2a$...`), so the plain text never reaches the server. Without credentials the API answers
+401 as a ProblemDetail. All responses carry a strict Content-Security-Policy, Referrer-Policy and
+Permissions-Policy. The `prod` profile marks the session cookie `Secure` and trusts the TLS proxy's
+`X-Forwarded-Proto`, so HSTS is sent.
+
 ## Running the contract tests
 
 Prerequisites: Java 21, Maven, the target app running. The suite is opt-in (`-Pcontract`), so a
@@ -48,15 +69,16 @@ mvn -pl contract-tests verify -Pcontract
 
 # Against the new app
 mvn -pl contract-tests verify -Pcontract \
-    -Dcontract.baseUrl=http://localhost:8081/rest -Dcontract.format=v2
-# Once the API needs HTTP Basic (Phase 5): add -Dcontract.user=api, password in env CONTRACT_PASSWORD
+    -Dcontract.baseUrl=http://localhost:8081/rest -Dcontract.format=v2 \
+    -Dcontract.user=test-client       # HTTP Basic user; the password comes from env CONTRACT_PASSWORD
 ```
 
 The suite asserts only behaviour both apps must share. Intentional changes (bug fixes,
 new formats) are tested in the new app and listed on the scorecard.
 
 CI's `contract-v2` job runs the suite against the new app on every push and pull request (jar on a
-fresh MongoDB, no dev profile), so a parity regression fails the build. The scorecard's v2 column
+fresh MongoDB, no dev profile, an API password generated for that run), so a parity regression
+fails the build. It also checks that the API answers 401 without credentials. The scorecard's v2 column
 is a committed snapshot: refresh it with `scorecard.py save-contract --name v2` after a run.
 
 ## Migration scorecard

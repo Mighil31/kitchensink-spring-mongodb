@@ -26,6 +26,9 @@ services:
     build: ./app
     environment:
       MONGODB_URI: mongodb://${MONGO_APP_USER}:${MONGO_APP_PASSWORD}@mongo:27017/kitchensink?authSource=kitchensink
+      # The REST API's client (ADR 0007): HTTP Basic on /rest/**.
+      KITCHENSINK_API_USERNAME: ${API_USER:?set in .env}
+      KITCHENSINK_API_PASSWORD: ${API_PASSWORD:?set in .env}
       # Local stack only: seeds John Smith (ADR 0005). Production runs without this profile.
       SPRING_PROFILES_ACTIVE: dev
     ports:

@@ -34,7 +34,7 @@
       "new": "HTTP Basic on all of /rest/**; 401 ProblemDetail without credentials",
       "source": "ADR 0007",
       "status": "decided",
-      "verifiedBy": null
+      "verifiedBy": "SecurityConfigTest.Api.withoutCredentialsIs401ProblemDetailWithChallenge"
     },
     {
       "id": "B1",

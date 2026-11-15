@@ -1,0 +1,9 @@
+# Production: behind a TLS-terminating proxy or ingress.
+server:
+  # Trust X-Forwarded-Proto from the proxy, so the app knows the request came in over HTTPS
+  # (Spring Security then sends HSTS). Only safe when the app is reachable through the proxy alone.
+  forward-headers-strategy: native
+  servlet:
+    session:
+      cookie:
+        secure: true

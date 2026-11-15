@@ -7,6 +7,7 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import io.github.mighil31.kitchensink.security.SecurityConfig;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -16,14 +17,19 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
+/** Behaviour behind authentication; the authentication itself is in ApiSecurityTest. */
 @WebMvcTest(MemberRestController.class)
+@Import(SecurityConfig.class)
+@WithMockUser(roles = "API_CLIENT")
 class MemberRestControllerTest {
 
     static final ObjectId JANE_ID = new ObjectId("65f0c0ffee0000000000abcd");

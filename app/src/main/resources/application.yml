@@ -26,6 +26,16 @@ server:
       # Session id only in a cookie, never rewritten into URLs (;jsessionid=...), where it would leak
       # through logs and Referer headers. The flash message after registering creates the session.
       tracking-modes: cookie
+      cookie:
+        # HttpOnly is Boot's default; stated here so the security settings are all in one place.
+        http-only: true
+        same-site: lax
+
+kitchensink:
+  api:
+    # The REST API's one client (ADR 0007). No defaults: the app won't start without them.
+    username: ${KITCHENSINK_API_USERNAME:}
+    password: ${KITCHENSINK_API_PASSWORD:}
 
 management:
   endpoints:

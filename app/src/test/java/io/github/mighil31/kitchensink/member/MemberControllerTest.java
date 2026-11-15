@@ -5,12 +5,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
+import io.github.mighil31.kitchensink.security.SecurityConfig;
 import java.util.List;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -19,6 +22,7 @@ import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
 @WebMvcTest(MemberController.class)
+@Import(SecurityConfig.class)
 class MemberControllerTest {
 
     static final Member JANE =
@@ -127,6 +131,7 @@ class MemberControllerTest {
     void pageFollowsAcceptLanguage() {
         assertThat(mvc.post()
                         .uri("/")
+                        .with(csrf())
                         .header("Accept-Language", "es")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("name", "R2D2")
@@ -140,6 +145,7 @@ class MemberControllerTest {
     private MvcTestResult submit(String name, String email, String phone) {
         return mvc.post()
                 .uri("/")
+                .with(csrf())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .param("name", name)
                 .param("email", email)
