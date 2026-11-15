@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-failsafe-plugin/xsd/failsafe-test-report.xsd" version="3.0.2" name="io.github.mighil31.kitchensink.contract.CreateMemberIT" time="0.445" tests="4" errors="0" skipped="0" failures="0" flakes="0">
+  <properties>
+    <property name="contract.baseUrl" value="http://localhost:8081/rest" />
+    <property name="contract.user" value="" />
+    <property name="java.version" value="21.0.13" />
+    <property name="contract.format" value="v2" />
+    </properties>
+  <testcase name="nonJsonContentType_isRejectedWith415" classname="io.github.mighil31.kitchensink.contract.CreateMemberIT" time="0.197" />
+  <testcase name="createdMember_canBeFetchedById" classname="io.github.mighil31.kitchensink.contract.CreateMemberIT" time="0.181" />
+  <testcase name="validMember_isCreated" classname="io.github.mighil31.kitchensink.contract.CreateMemberIT" time="0.007" />
+  <testcase name="createdMember_appearsInList" classname="io.github.mighil31.kitchensink.contract.CreateMemberIT" time="0.023" />
+</testsuite>

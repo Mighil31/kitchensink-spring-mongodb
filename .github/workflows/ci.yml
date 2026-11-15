@@ -29,3 +29,50 @@ jobs:
           name: coverage
           path: app/target/site/jacoco/
           if-no-files-found: ignore
+
+  # Parity gate: the black-box HTTP suite that ran against legacy, run against the new app
+  # (ADR 0008). The app runs as a plain jar on a fresh MongoDB, no dev profile, as in production.
+  contract-v2:
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:8.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand(\"ping\").ok'"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - name: Package the app
+        run: mvn -B -pl app package -DskipTests
+      - name: Start the app and wait until ready
+        env:
+          MONGODB_URI: mongodb://localhost:27017/kitchensink
+        run: |
+          java -jar app/target/kitchensink-app-*.jar > app.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:8081/actuator/health/readiness && exit 0
+            sleep 2
+          done
+          cat app.log
+          exit 1
+      # Phase 5 (HTTP Basic, ADR 0007) adds -Dcontract.user=… and env CONTRACT_PASSWORD.
+      - name: Contract suite against the new app
+        run: >-
+          mvn -B -pl contract-tests verify -Pcontract
+          -Dcontract.format=v2 -Dcontract.baseUrl=http://localhost:8081/rest
+      - name: Contract reports and app log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: contract-v2
+          path: |
+            contract-tests/target/failsafe-reports/
+            app.log
+          if-no-files-found: ignore

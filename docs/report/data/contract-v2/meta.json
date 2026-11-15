@@ -1,0 +1,8 @@
+{
+  "label": "Spring Boot 4.1.2 + MongoDB 8.0, app @ e50b57e",
+  "date": "2026-11-15",
+  "suiteCommit": "e50b57e",
+  "baseUrl": "http://localhost:8081/rest",
+  "format": "v2",
+  "java": "21.0.13"
+}

@@ -7,7 +7,7 @@
       "new": "24-hex MongoDB ObjectId",
       "source": "ADR 0002",
       "status": "decided",
-      "verifiedBy": null
+      "verifiedBy": "MemberRestControllerTest.getReturnsMemberWithHexIdAndNoLegacyId"
     },
     {
       "id": "A1",
@@ -16,7 +16,7 @@
       "new": "201 + Location header + member body",
       "source": "Gap Analysis A1",
       "status": "decided",
-      "verifiedBy": null
+      "verifiedBy": "MemberRestControllerTest.createReturns201WithLocationAndMember"
     },
     {
       "id": "ADR-0003",
@@ -43,7 +43,7 @@
       "new": "One 201; every other request 409",
       "source": "Gap Analysis B1 · ADR 0005",
       "status": "decided",
-      "verifiedBy": null
+      "verifiedBy": "MemberRegistrationIT.concurrentRegistrationsWithSameEmailStoreExactlyOne"
     },
     {
       "id": "B2",

@@ -46,13 +46,18 @@ plain `mvn verify` doesn't need a running server.
 # Against legacy JBoss EAP (default base URL)
 mvn -pl contract-tests verify -Pcontract
 
-# Against the new app (HTTP Basic; password from env only)
-CONTRACT_PASSWORD=... mvn -pl contract-tests verify -Pcontract \
-    -Dcontract.baseUrl=http://localhost:8081/rest -Dcontract.format=v2 -Dcontract.user=api
+# Against the new app
+mvn -pl contract-tests verify -Pcontract \
+    -Dcontract.baseUrl=http://localhost:8081/rest -Dcontract.format=v2
+# Once the API needs HTTP Basic (Phase 5): add -Dcontract.user=api, password in env CONTRACT_PASSWORD
 ```
 
 The suite asserts only behaviour both apps must share. Intentional changes (bug fixes,
 new formats) are tested in the new app and listed on the scorecard.
+
+CI's `contract-v2` job runs the suite against the new app on every push and pull request (jar on a
+fresh MongoDB, no dev profile), so a parity regression fails the build. The scorecard's v2 column
+is a committed snapshot: refresh it with `scorecard.py save-contract --name v2` after a run.
 
 ## Migration scorecard
 
