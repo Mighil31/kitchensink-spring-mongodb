@@ -33,6 +33,10 @@ mvn -pl app spring-boot:test-run
 mvn verify
 ```
 
+Both local options run with the `dev` profile, which seeds legacy's John Smith member. The schema
+(collection, validator, indexes) comes from Flamingock migrations in
+`app/src/main/java/.../migration/`, applied at startup; see ADRs 0005, 0006 and 0011.
+
 ## Running the contract tests
 
 Prerequisites: Java 21, Maven, the target app running. The suite is opt-in (`-Pcontract`), so a

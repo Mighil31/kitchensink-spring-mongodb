@@ -26,6 +26,8 @@ services:
     build: ./app
     environment:
       MONGODB_URI: mongodb://${MONGO_APP_USER}:${MONGO_APP_PASSWORD}@mongo:27017/kitchensink?authSource=kitchensink
+      # Local stack only: seeds John Smith (ADR 0005). Production runs without this profile.
+      SPRING_PROFILES_ACTIVE: dev
     ports:
       - "127.0.0.1:8081:8081"
     depends_on:

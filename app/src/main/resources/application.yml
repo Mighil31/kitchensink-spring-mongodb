@@ -4,6 +4,15 @@ spring:
   mongodb:
     # Overridden by env MONGODB_URI (docker compose) or by Testcontainers in tests.
     uri: ${MONGODB_URI:mongodb://localhost:27017/kitchensink}
+  data:
+    mongodb:
+      # Indexes are versioned Flamingock migrations, not created from annotations (ADR 0005).
+      auto-index-creation: false
+
+flamingock:
+  # Run migrations while the context starts, before the web server accepts requests.
+  # The default (APPLICATION_RUNNER) runs them after the port is already open.
+  management-mode: INITIALIZING_BEAN
 
 server:
   # 8080 is the legacy JBoss app; running both side by side is the point of the contract suite.
