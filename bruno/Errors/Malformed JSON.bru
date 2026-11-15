@@ -1,0 +1,38 @@
+meta {
+  name: Malformed JSON
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/members
+  body: text
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:text {
+  {"name": 
+}
+
+assert {
+  res.status: eq 400
+}
+
+tests {
+  test("is a ProblemDetail", function() {
+    expect(res.getHeader("content-type")).to.contain("application/problem+json");
+    expect(res.getBody()).to.include.keys("title", "status", "detail", "instance");
+  });
+
+  test("no parser internals", function() {
+    expect(JSON.stringify(res.getBody())).to.not.match(/Exception|jackson|Source/);
+  });
+}
+
+docs {
+  Gap B5. Legacy: 500 with RESTEasy / JSON-B internals in the body.
+}

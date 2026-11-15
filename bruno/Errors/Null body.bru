@@ -1,0 +1,38 @@
+meta {
+  name: Null body
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}/members
+  body: text
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:text {
+  null
+}
+
+assert {
+  res.status: eq 400
+}
+
+tests {
+  test("is a ProblemDetail", function() {
+    expect(res.getHeader("content-type")).to.contain("application/problem+json");
+    expect(res.getBody()).to.include.keys("title", "status", "detail", "instance");
+  });
+
+  test("no validator codes", function() {
+    expect(JSON.stringify(res.getBody())).to.not.contain("HV0");
+  });
+}
+
+docs {
+  Gap B6. Legacy: 400 with Hibernate Validator's internal code `HV000116`.
+}

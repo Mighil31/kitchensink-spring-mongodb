@@ -58,6 +58,21 @@ The password is bcrypt-hashed at startup; `KITCHENSINK_API_PASSWORD` may also ho
 Permissions-Policy. The `prod` profile marks the session cookie `Secure` and trusts the TLS proxy's
 `X-Forwarded-Proto`, so HSTS is sent.
 
+## Trying the API by hand (Bruno)
+
+[`bruno/`](bruno) is a [Bruno](https://www.usebruno.com/) collection: in Bruno, *Open Collection*
+and pick that folder. It has the happy path (list, register, get by id) and every error the API
+returns (401, 400, 404, 405, 406, 409, 415), each with tests and a note on the legacy behaviour it
+replaces.
+
+| Environment | For |
+|---|---|
+| Testcontainers run | `mvn -pl app spring-boot:test-run`; credentials included (test-only) |
+| Docker compose | `docker compose up`; set the secret `apiPassword` to `API_PASSWORD` from `.env` (kept by Bruno on your machine, not in the repo) |
+| Legacy JBoss | the original app on port 8080; no auth. Many tests fail there on purpose: they show what changed |
+
+Run **Members** before **Errors** (*Get member* uses the id *Register member* saved).
+
 ## Running the contract tests
 
 Prerequisites: Java 21, Maven, the target app running. The suite is opt-in (`-Pcontract`), so a

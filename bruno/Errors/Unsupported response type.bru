@@ -1,0 +1,30 @@
+meta {
+  name: Unsupported response type
+  type: http
+  seq: 16
+}
+
+get {
+  url: {{baseUrl}}/members
+  body: none
+  auth: inherit
+}
+
+headers {
+  Accept: application/xml
+}
+
+assert {
+  res.status: eq 406
+}
+
+tests {
+  test("is a ProblemDetail", function() {
+    expect(res.getHeader("content-type")).to.contain("application/problem+json");
+    expect(res.getBody()).to.include.keys("title", "status", "detail", "instance");
+  });
+}
+
+docs {
+  The API only produces JSON. The error itself still comes back as `application/problem+json`.
+}

@@ -1,0 +1,43 @@
+meta {
+  name: Validation errors
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/members
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "R2D2",
+    "email": "not-an-email",
+    "phoneNumber": "123"
+  }
+}
+
+assert {
+  res.status: eq 400
+}
+
+tests {
+  test("is a ProblemDetail", function() {
+    expect(res.getHeader("content-type")).to.contain("application/problem+json");
+    expect(res.getBody()).to.include.keys("title", "status", "detail", "instance");
+  });
+
+  test("reports one message per field", function() {
+    expect(res.getBody().errors).to.deep.equal({
+      name: "must contain only letters and spaces",
+      email: "must be a well-formed email address",
+      phoneNumber: "size must be between 10 and 12"
+    });
+  });
+}
+
+docs {
+  400 ProblemDetail with an `errors` map, field to message (ADR 0003). Legacy: the same messages
+  as a bare `{field: message}` object.
+}

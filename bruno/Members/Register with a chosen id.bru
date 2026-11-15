@@ -1,0 +1,39 @@
+meta {
+  name: Register with a chosen id
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/members
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "id": "000000000000000000000001",
+    "name": "Bruno Chooser",
+    "email": "{{chooserEmail}}",
+    "phoneNumber": "2125551234"
+  }
+}
+
+script:pre-request {
+  bru.setVar("chooserEmail", "chooser." + Date.now() + "@example.com");
+}
+
+assert {
+  res.status: eq 201
+}
+
+tests {
+  test("ignores the id the client sent", function() {
+    expect(res.getBody().id).to.not.equal("000000000000000000000001");
+  });
+}
+
+docs {
+  Gap B4 (mass assignment): the request body has no `id` field, so a client can't choose one; the
+  database generates it. Unknown fields like this are ignored (gap B10, still an open decision).
+}

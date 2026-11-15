@@ -1,0 +1,30 @@
+meta {
+  name: Method not allowed
+  type: http
+  seq: 15
+}
+
+delete {
+  url: {{baseUrl}}/members
+  body: none
+  auth: inherit
+}
+
+assert {
+  res.status: eq 405
+}
+
+tests {
+  test("is a ProblemDetail", function() {
+    expect(res.getHeader("content-type")).to.contain("application/problem+json");
+    expect(res.getBody()).to.include.keys("title", "status", "detail", "instance");
+  });
+
+  test("lists the allowed methods", function() {
+    expect(res.getHeader("allow")).to.contain("GET").and.to.contain("POST");
+  });
+}
+
+docs {
+  Members can't be deleted through the API (nor on legacy). The `Allow` header lists what's supported.
+}

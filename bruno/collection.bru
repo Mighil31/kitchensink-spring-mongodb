@@ -1,0 +1,23 @@
+auth {
+  mode: basic
+}
+
+auth:basic {
+  username: {{apiUser}}
+  password: {{apiPassword}}
+}
+
+docs {
+  # kitchensink API
+
+  The REST API of the Spring Boot + MongoDB app, plus legacy for comparison.
+
+  - Pick an environment (top right). **Testcontainers run** works out of the box with
+    `mvn -pl app spring-boot:test-run`.
+  - **Docker compose**: set `apiPassword` to `API_PASSWORD` from `.env` (Environment settings;
+    it's a secret, stored by Bruno on this machine only, never in the repo).
+  - Every request inherits HTTP Basic from here (ADR 0007), except the ones that test it.
+  - Run **Members** before **Errors**: "Get member" uses the id "Register member" saved.
+  - Tests are written for the new app. Against **Legacy JBoss** many fail on purpose: that's the
+    difference the scorecard lists (200 vs 201, empty 404s, no auth, case-sensitive emails...).
+}

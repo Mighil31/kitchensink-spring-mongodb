@@ -1,0 +1,38 @@
+meta {
+  name: Blank name
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/members
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "   ",
+    "email": "blank.name@example.com",
+    "phoneNumber": "2125551234"
+  }
+}
+
+assert {
+  res.status: eq 400
+}
+
+tests {
+  test("is a ProblemDetail", function() {
+    expect(res.getHeader("content-type")).to.contain("application/problem+json");
+    expect(res.getBody()).to.include.keys("title", "status", "detail", "instance");
+  });
+
+  test("rejects a name of only spaces", function() {
+    expect(res.getBody().errors).to.deep.equal({ name: "must not be blank" });
+  });
+}
+
+docs {
+  Gap B3. Legacy accepted and stored `"   "`.
+}

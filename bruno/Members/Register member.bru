@@ -1,0 +1,51 @@
+meta {
+  name: Register member
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/members
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "Bruno Tester",
+    "email": "{{email}}",
+    "phoneNumber": "2125551234"
+  }
+}
+
+script:pre-request {
+  // A new address each run, mixed case on purpose: it's stored lower-cased (gap B2).
+  bru.setVar("email", "Bruno." + Date.now() + "@Example.com");
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setVar("memberId", res.getBody().id);
+  }
+}
+
+assert {
+  res.status: eq 201
+}
+
+tests {
+  test("returns the stored member and its location", function() {
+    const member = res.getBody();
+    expect(member.id).to.match(/^[0-9a-f]{24}$/);
+    expect(res.getHeader("location")).to.match(new RegExp("/rest/members/" + member.id + "$"));
+  });
+
+  test("stores the email lower-cased", function() {
+    expect(res.getBody().email).to.equal(bru.getVar("email").toLowerCase());
+  });
+}
+
+docs {
+  201 with a `Location` header and the stored member (legacy: 200, empty body; gap A1).
+  Saves `memberId` for "Get member". The email is stored lower-cased (gap B2).
+}

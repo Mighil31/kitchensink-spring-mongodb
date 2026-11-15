@@ -1,0 +1,34 @@
+meta {
+  name: JSON array body
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/members
+  body: text
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:text {
+  []
+}
+
+assert {
+  res.status: eq 400
+}
+
+tests {
+  test("is a ProblemDetail", function() {
+    expect(res.getHeader("content-type")).to.contain("application/problem+json");
+    expect(res.getBody()).to.include.keys("title", "status", "detail", "instance");
+  });
+}
+
+docs {
+  Gap B17. Legacy: 500 with RESTEasy / JSON-B internals.
+}

@@ -1,0 +1,34 @@
+meta {
+  name: Wrong content type
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{baseUrl}}/members
+  body: text
+  auth: inherit
+}
+
+headers {
+  Content-Type: text/plain
+}
+
+body:text {
+  {"name": "Jane Doe", "email": "jane@example.com", "phoneNumber": "2125551234"}
+}
+
+assert {
+  res.status: eq 415
+}
+
+tests {
+  test("is a ProblemDetail", function() {
+    expect(res.getHeader("content-type")).to.contain("application/problem+json");
+    expect(res.getBody()).to.include.keys("title", "status", "detail", "instance");
+  });
+}
+
+docs {
+  The API only accepts JSON. Same status as legacy.
+}

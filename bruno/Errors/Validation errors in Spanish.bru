@@ -1,0 +1,42 @@
+meta {
+  name: Validation errors in Spanish
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/members
+  body: json
+  auth: inherit
+}
+
+headers {
+  Accept-Language: es
+}
+
+body:json {
+  {
+    "name": "R2D2",
+    "email": "jane@example.com",
+    "phoneNumber": "2125551234"
+  }
+}
+
+assert {
+  res.status: eq 400
+}
+
+tests {
+  test("is a ProblemDetail", function() {
+    expect(res.getHeader("content-type")).to.contain("application/problem+json");
+    expect(res.getBody()).to.include.keys("title", "status", "detail", "instance");
+  });
+
+  test("follows Accept-Language", function() {
+    expect(res.getBody().errors.name).to.equal("debe contener sólo letras y espacios");
+  });
+}
+
+docs {
+  Messages follow `Accept-Language` (English, Spanish, French), as on legacy.
+}

@@ -1,0 +1,26 @@
+meta {
+  name: Malformed member id
+  type: http
+  seq: 13
+}
+
+get {
+  url: {{baseUrl}}/members/abc
+  body: none
+  auth: inherit
+}
+
+assert {
+  res.status: eq 404
+}
+
+tests {
+  test("is a ProblemDetail", function() {
+    expect(res.getHeader("content-type")).to.contain("application/problem+json");
+    expect(res.getBody()).to.include.keys("title", "status", "detail", "instance");
+  });
+}
+
+docs {
+  Not an ObjectId at all: 404, as legacy returned for anything outside its numeric id pattern.
+}

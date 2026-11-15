@@ -1,0 +1,27 @@
+meta {
+  name: Get member
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/members/{{memberId}}
+  body: none
+  auth: inherit
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("is the member just registered", function() {
+    expect(res.getBody().id).to.equal(bru.getVar("memberId"));
+    expect(res.getBody().name).to.equal("Bruno Tester");
+  });
+}
+
+docs {
+  Uses the id saved by "Register member": run that first.
+  Ids are MongoDB ObjectIds, 24 hex characters (ADR 0002).
+}

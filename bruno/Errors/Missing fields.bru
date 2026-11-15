@@ -1,0 +1,38 @@
+meta {
+  name: Missing fields
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/members
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {}
+}
+
+assert {
+  res.status: eq 400
+}
+
+tests {
+  test("is a ProblemDetail", function() {
+    expect(res.getHeader("content-type")).to.contain("application/problem+json");
+    expect(res.getBody()).to.include.keys("title", "status", "detail", "instance");
+  });
+
+  test("each field reports must not be null", function() {
+    expect(res.getBody().errors).to.deep.equal({
+      name: "must not be null",
+      email: "must not be null",
+      phoneNumber: "must not be null"
+    });
+  });
+}
+
+docs {
+  A missing email breaks two rules (`@NotNull`, `@NotEmpty`); "must not be null" wins, as on legacy.
+}

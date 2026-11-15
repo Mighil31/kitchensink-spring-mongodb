@@ -44,6 +44,36 @@ class ApiRoutingExceptionHandlerTest {
                         """);
     }
 
+    /** Found by the Bruno collection: the status was right, the body was Boot's default error JSON. */
+    @Test
+    void nonJsonBodyIs415ProblemListingAcceptedTypes() {
+        MvcTestResult result = mvc.post()
+                .uri("/rest/members")
+                .contentType(MediaType.TEXT_PLAIN)
+                .content("{}")
+                .exchange();
+
+        assertThat(result)
+                .hasStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                .hasContentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .hasHeader(HttpHeaders.ACCEPT, "application/json")
+                .bodyJson()
+                .isLenientlyEqualTo("""
+                        {"status": 415, "instance": "/rest/members"}
+                        """);
+    }
+
+    @Test
+    void unsupportedAcceptIs406Problem() {
+        assertThat(mvc.get().uri("/rest/members").accept(MediaType.APPLICATION_XML))
+                .hasStatus(HttpStatus.NOT_ACCEPTABLE)
+                .hasContentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .bodyJson()
+                .isLenientlyEqualTo("""
+                        {"status": 406, "instance": "/rest/members"}
+                        """);
+    }
+
     @Test
     void unknownApiPathIs404ProblemWithoutInternals() {
         assertThat(mvc.get().uri("/rest/nope"))

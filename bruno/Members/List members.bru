@@ -1,0 +1,28 @@
+meta {
+  name: List members
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/members
+  body: none
+  auth: inherit
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("is an array of members ordered by name", function() {
+    const members = res.getBody();
+    expect(members).to.be.an("array");
+    const names = members.map(m => m.name);
+    expect(names).to.deep.equal([...names].sort());
+  });
+}
+
+docs {
+  All members, ordered by name (binary order, as legacy: ADR 0009).
+}

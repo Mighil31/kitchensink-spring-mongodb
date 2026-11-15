@@ -1,0 +1,30 @@
+meta {
+  name: Unknown endpoint
+  type: http
+  seq: 14
+}
+
+get {
+  url: {{baseUrl}}/nope
+  body: none
+  auth: inherit
+}
+
+assert {
+  res.status: eq 404
+}
+
+tests {
+  test("is a ProblemDetail", function() {
+    expect(res.getHeader("content-type")).to.contain("application/problem+json");
+    expect(res.getBody()).to.include.keys("title", "status", "detail", "instance");
+  });
+
+  test("no framework internals", function() {
+    expect(res.getBody().detail).to.equal("No such endpoint");
+  });
+}
+
+docs {
+  Fails before any controller is chosen; still a ProblemDetail (`ApiRoutingExceptionHandler`).
+}

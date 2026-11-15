@@ -1,0 +1,39 @@
+meta {
+  name: Email taken in another case
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/members
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "Other John",
+    "email": "JOHN.SMITH@Mailinator.com",
+    "phoneNumber": "2125550000"
+  }
+}
+
+assert {
+  res.status: eq 409
+}
+
+tests {
+  test("is a ProblemDetail", function() {
+    expect(res.getHeader("content-type")).to.contain("application/problem+json");
+    expect(res.getBody()).to.include.keys("title", "status", "detail", "instance");
+  });
+
+  test("is a conflict on the email field", function() {
+    expect(res.getBody().errors).to.deep.equal({ email: "Email taken" });
+  });
+}
+
+docs {
+  Gap B2. `john.smith@mailinator.com` is the seeded member (dev profile: both local runs).
+  The same address in other letter case is taken. Legacy: 200, a second John Smith.
+}
