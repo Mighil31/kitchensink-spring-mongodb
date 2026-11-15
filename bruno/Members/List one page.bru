@@ -1,0 +1,35 @@
+meta {
+  name: List one page
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/members?page=0&size=2
+  body: none
+  auth: inherit
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("is an array of at most 2 members", function() {
+    expect(res.getBody()).to.be.an("array");
+    expect(res.getBody().length).to.be.at.most(2);
+  });
+
+  test("links to the next page when there is one", function() {
+    const link = res.getHeader("link");
+    if (res.getBody().length === 2 && link) {
+      expect(link).to.contain("page=1").and.to.contain('rel="next"');
+    }
+  });
+}
+
+docs {
+  Gap A3 (ADR 0013). Paging is opt-in: `?page=` (from 0) and/or `?size=` (1 to 100, default 20).
+  Same array as the full list; a `Link: <...>; rel="next"` header points to the next page while
+  there is one. Without the parameters you get every member, as on legacy.
+}

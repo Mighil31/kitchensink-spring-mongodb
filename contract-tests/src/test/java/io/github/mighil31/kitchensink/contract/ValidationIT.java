@@ -23,6 +23,9 @@ class ValidationIT extends ContractTest {
     private static final String NOT_NULL = "must not be null";
     private static final String NAME_SIZE = "size must be between 1 and 25";
     private static final String NAME_PATTERN = "must contain only letters and spaces";
+    /** The new app's message for the same rule, reworded when the rule was tightened (ADR 0013, gap B11). */
+    private static final String NAME_PATTERN_V2 = "must contain only letters, spaces, hyphens, apostrophes and periods";
+
     private static final String EMAIL_EMPTY = "must not be empty";
     private static final String EMAIL_FORMAT = "must be a well-formed email address";
     private static final String PHONE_SIZE = "size must be between 10 and 12";
@@ -33,6 +36,8 @@ class ValidationIT extends ContractTest {
             NAME_SIZE,
             "NAME_PATTERN",
             NAME_PATTERN,
+            "NAME_PATTERN_V2",
+            NAME_PATTERN_V2,
             "EMAIL_EMPTY",
             EMAIL_EMPTY,
             "EMAIL_FORMAT",
@@ -55,7 +60,8 @@ class ValidationIT extends ContractTest {
         return Stream.of(
                 arguments("", Set.of(NAME_SIZE)),
                 arguments("abcdefghijklmnopqrstuvwxyz", Set.of(NAME_SIZE)),
-                arguments("R2D2", Set.of(NAME_PATTERN)));
+                // Rejected by both; each app words the name rule its own way (gap B11).
+                arguments("R2D2", Set.of(NAME_PATTERN, NAME_PATTERN_V2)));
     }
 
     @ParameterizedTest(name = "name {0} -> 400")
@@ -90,7 +96,8 @@ class ValidationIT extends ContractTest {
         return Stream.of(
                 arguments("123456789", Set.of(PHONE_SIZE)),
                 arguments("12345abcde", Set.of(PHONE_DIGITS)),
-                // Break both @Size and @Digits; legacy reports one of them at random (gap B16).
+                // Break both @Size and @Digits; legacy reports one of them at random, the new app always the size rule
+                // (gap B16).
                 arguments("1234567890123", Set.of(PHONE_SIZE, PHONE_DIGITS)),
                 arguments("", Set.of(PHONE_SIZE, PHONE_DIGITS)));
     }

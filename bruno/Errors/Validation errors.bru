@@ -30,7 +30,7 @@ tests {
 
   test("reports one message per field", function() {
     expect(res.getBody().errors).to.deep.equal({
-      name: "must contain only letters and spaces",
+      name: "must contain only letters, spaces, hyphens, apostrophes and periods",
       email: "must be a well-formed email address",
       phoneNumber: "size must be between 10 and 12"
     });
@@ -38,6 +38,6 @@ tests {
 }
 
 docs {
-  400 ProblemDetail with an `errors` map, field to message (ADR 0003). Legacy: the same messages
-  as a bare `{field: message}` object.
+  400 ProblemDetail with an `errors` map, field to message (ADR 0003). Legacy: a bare
+  `{field: message}` object, and its name message said only "letters and spaces" (gap B11).
 }

@@ -1,0 +1,39 @@
+meta {
+  name: Phone with a plus sign
+  type: http
+  seq: 18
+}
+
+post {
+  url: {{baseUrl}}/members
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "Plus Sign",
+    "email": "plus@example.com",
+    "phoneNumber": "+123456789"
+  }
+}
+
+assert {
+  res.status: eq 400
+}
+
+tests {
+  test("is a ProblemDetail", function() {
+    expect(res.getHeader("content-type")).to.contain("application/problem+json");
+    expect(res.getBody()).to.include.keys("title", "status", "detail", "instance");
+  });
+
+  test("phones are digits only", function() {
+    expect(res.getBody().errors).to.deep.equal({ phoneNumber: "must contain only the digits 0-9" });
+  });
+}
+
+docs {
+  Gap B18 (ADR 0013). Legacy's rule parsed the text as a number, so `+123456789`, `1.23456789E9`
+  and Arabic-Indic digits were stored as phone numbers.
+}

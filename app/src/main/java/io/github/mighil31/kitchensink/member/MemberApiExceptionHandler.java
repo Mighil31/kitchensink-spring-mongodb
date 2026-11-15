@@ -12,10 +12,12 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
+import org.springframework.validation.method.ParameterValidationResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 /**
@@ -36,6 +38,23 @@ class MemberApiExceptionHandler extends ResponseEntityExceptionHandler {
         ProblemDetail body = ex.getBody();
         body.setDetail("Validation failed");
         body.setProperty("errors", fieldErrors(ex));
+        return handleExceptionInternal(ex, body, headers, status, request);
+    }
+
+    /** Request parameters out of range ({@code ?size=1000}): 400 with the same {@code errors} map. */
+    @Override
+    protected ResponseEntity<Object> handleHandlerMethodValidationException(
+            HandlerMethodValidationException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        ProblemDetail body = ex.getBody();
+        body.setDetail("Validation failed");
+        Map<String, String> errors = new LinkedHashMap<>();
+        for (ParameterValidationResult result : ex.getParameterValidationResults()) {
+            result.getResolvableErrors().stream()
+                    .findFirst()
+                    .ifPresent(error ->
+                            errors.put(result.getMethodParameter().getParameterName(), error.getDefaultMessage()));
+        }
+        body.setProperty("errors", errors);
         return handleExceptionInternal(ex, body, headers, status, request);
     }
 
@@ -64,18 +83,8 @@ class MemberApiExceptionHandler extends ResponseEntityExceptionHandler {
         return body;
     }
 
-    /**
-     * One message per field, like legacy. A missing value breaks {@code @NotNull} and, for email,
-     * {@code @NotEmpty} too; "must not be null" wins, as on legacy. Other fields breaking two rules
-     * report one of them (gap B16, open).
-     */
+    /** One message per field, as legacy clients expect, chosen in a fixed order (gap B16). */
     private static Map<String, String> fieldErrors(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new LinkedHashMap<>();
-        for (FieldError error : ex.getFieldErrors()) {
-            if ("NotNull".equals(error.getCode()) || !errors.containsKey(error.getField())) {
-                errors.put(error.getField(), error.getDefaultMessage());
-            }
-        }
-        return errors;
+        return FieldMessages.firstPerField(ex.getFieldErrors(), FieldError::getDefaultMessage);
     }
 }

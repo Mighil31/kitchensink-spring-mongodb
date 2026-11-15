@@ -71,6 +71,9 @@ replaces.
 | Docker compose | `docker compose up`; set the secret `apiPassword` to `API_PASSWORD` from `.env` (kept by Bruno on your machine, not in the repo) |
 | Legacy JBoss | the original app on port 8080; no auth. Many tests fail there on purpose: they show what changed |
 
+`GET /rest/members` returns every member, as legacy did; add `?page=0&size=20` (size up to 100)
+for one page, with a `Link: <...>; rel="next"` header while more follow (ADR 0013).
+
 Run **Members** before **Errors** (*Get member* uses the id *Register member* saved).
 
 ## Running the contract tests

@@ -2,6 +2,9 @@ package io.github.mighil31.kitchensink.member;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Locale;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -23,10 +26,12 @@ class MemberController {
 
     private final MemberRepository repository;
     private final MemberRegistration registration;
+    private final MessageSource messages;
 
-    MemberController(MemberRepository repository, MemberRegistration registration) {
+    MemberController(MemberRepository repository, MemberRegistration registration, MessageSource messages) {
         this.repository = repository;
         this.registration = registration;
+        this.messages = messages;
     }
 
     @GetMapping("/")
@@ -53,12 +58,17 @@ class MemberController {
                 result.rejectValue("email", "emailTaken", "Email taken");
             }
         }
+        // One message per field, the same one every time (gap B16), in the request's language.
+        Locale locale = LocaleContextHolder.getLocale();
+        model.addAttribute(
+                "fieldMessages",
+                FieldMessages.firstPerField(result.getFieldErrors(), error -> messages.getMessage(error, locale)));
         model.addAttribute("members", members());
         return "index";
     }
 
     private List<MemberResponse> members() {
-        return repository.findAllByOrderByNameAsc().stream()
+        return repository.findAllByOrderByNameAscIdAsc().stream()
                 .map(MemberResponse::from)
                 .toList();
     }

@@ -1,0 +1,30 @@
+meta {
+  name: Page size too large
+  type: http
+  seq: 19
+}
+
+get {
+  url: {{baseUrl}}/members?size=1000
+  body: none
+  auth: inherit
+}
+
+assert {
+  res.status: eq 400
+}
+
+tests {
+  test("is a ProblemDetail", function() {
+    expect(res.getHeader("content-type")).to.contain("application/problem+json");
+    expect(res.getBody()).to.include.keys("title", "status", "detail", "instance");
+  });
+
+  test("names the parameter", function() {
+    expect(res.getBody().errors).to.deep.equal({ size: "must be less than or equal to 100" });
+  });
+}
+
+docs {
+  Gap A3: pages hold at most 100 members.
+}

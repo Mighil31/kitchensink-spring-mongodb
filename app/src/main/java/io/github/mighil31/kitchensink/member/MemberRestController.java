@@ -1,9 +1,14 @@
 package io.github.mighil31.kitchensink.member;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import java.net.URI;
 import java.util.List;
 import org.bson.types.ObjectId;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -27,12 +33,38 @@ public class MemberRestController {
         this.registration = registration;
     }
 
+    /**
+     * Every member, as legacy, unless the client asks for a page (gap A3, ADR 0013): {@code ?page=}
+     * (from 0) and/or {@code ?size=} (1 to {@value #MAX_PAGE_SIZE}, default {@value
+     * #DEFAULT_PAGE_SIZE}). The body is a plain array either way, so the response shape never
+     * changes; when there are more members, a {@code Link: <...>; rel="next"} header points to the
+     * next page (RFC 8288). Out-of-range values are a 400 ProblemDetail.
+     */
     @GetMapping
-    public List<MemberResponse> listAllMembers() {
-        return repository.findAllByOrderByNameAsc().stream()
-                .map(MemberResponse::from)
-                .toList();
+    public ResponseEntity<List<MemberResponse>> listMembers(
+            @RequestParam(required = false) @Min(0) Integer page,
+            @RequestParam(required = false) @Min(1) @Max(MAX_PAGE_SIZE) Integer size) {
+        if (page == null && size == null) {
+            return ResponseEntity.ok(repository.findAllByOrderByNameAscIdAsc().stream()
+                    .map(MemberResponse::from)
+                    .toList());
+        }
+        int pageNumber = page == null ? 0 : page;
+        int pageSize = size == null ? DEFAULT_PAGE_SIZE : size;
+        Slice<Member> slice = repository.findAllByOrderByNameAscIdAsc(PageRequest.of(pageNumber, pageSize));
+        ResponseEntity.BodyBuilder response = ResponseEntity.ok();
+        if (slice.hasNext()) {
+            String next = ServletUriComponentsBuilder.fromCurrentRequest()
+                    .replaceQueryParam("page", pageNumber + 1)
+                    .replaceQueryParam("size", pageSize)
+                    .toUriString();
+            response.header(HttpHeaders.LINK, "<" + next + ">; rel=\"next\"");
+        }
+        return response.body(slice.map(MemberResponse::from).getContent());
     }
+
+    static final int DEFAULT_PAGE_SIZE = 20;
+    static final int MAX_PAGE_SIZE = 100;
 
     /**
      * 404 for an unknown id and for one that isn't an ObjectId at all ({@code abc}, {@code -1}),

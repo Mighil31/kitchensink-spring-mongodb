@@ -33,7 +33,7 @@ tests {
   });
 
   test("follows Accept-Language", function() {
-    expect(res.getBody().errors.name).to.equal("debe contener sólo letras y espacios");
+    expect(res.getBody().errors.name).to.equal("sólo debe contener letras, espacios, guiones, apóstrofos y puntos");
   });
 }
 

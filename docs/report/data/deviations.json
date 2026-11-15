@@ -103,46 +103,64 @@
       "id": "B4",
       "change": "Client-supplied id in the request body",
       "legacy": "400 with Hibernate 'detached entity' message",
-      "new": "Request DTO has no id; exact response not decided",
-      "source": "Gap Analysis B4",
-      "status": "open",
-      "verifiedBy": null
+      "new": "No id field in the request; a sent id is ignored and the database generates one",
+      "source": "Gap Analysis B4 · ADR 0013",
+      "status": "decided",
+      "verifiedBy": "MemberRestControllerTest.clientCannotChooseTheId"
     },
     {
       "id": "B10",
       "change": "Unknown JSON fields",
       "legacy": "Silently ignored (200)",
-      "new": "Reject or keep ignoring: not decided",
-      "source": "Gap Analysis B10 · ADR 0003",
-      "status": "open",
-      "verifiedBy": null
+      "new": "Still ignored, as legacy (tolerant reader)",
+      "source": "Gap Analysis B10 · ADR 0013",
+      "status": "decided",
+      "verifiedBy": "MemberRestControllerTest.unknownFieldsAreIgnored"
     },
     {
       "id": "B11",
       "change": "Name rule vs its message",
       "legacy": "Only digits rejected; message says 'letters and spaces'",
-      "new": "Not decided",
-      "source": "Gap Analysis B11",
-      "status": "open",
-      "verifiedBy": null
+      "new": "Letters of any script, spaces and . ' - only; the message says so",
+      "source": "Gap Analysis B11 · ADR 0013",
+      "status": "decided",
+      "verifiedBy": "MemberRestControllerTest.nameWithOtherCharactersIs400"
+    },
+    {
+      "id": "B19",
+      "change": "Other scripts' digits and symbols in names",
+      "legacy": "Ana١, Ana１, emoji and <b>bold</b> accepted (200)",
+      "new": "400 with the name message",
+      "source": "Gap Analysis B19 · ADR 0013",
+      "status": "decided",
+      "verifiedBy": "MemberRestControllerTest.nameWithOtherCharactersIs400"
+    },
+    {
+      "id": "B18",
+      "change": "Phone numbers that only parse as numbers",
+      "legacy": "+123456789, 1.23456789E9 and Arabic-Indic digits accepted (200)",
+      "new": "400: phone numbers are 10 to 12 digits 0-9",
+      "source": "Gap Analysis B18 · ADR 0013",
+      "status": "decided",
+      "verifiedBy": "MemberRestControllerTest.phoneThatOnlyParsesAsANumberIs400"
     },
     {
       "id": "B16",
       "change": "Field breaking two rules",
       "legacy": "One message, chosen at random",
-      "new": "Not decided (all messages, or a fixed order)",
-      "source": "Gap Analysis B16 · ADR 0003",
-      "status": "open",
-      "verifiedBy": null
+      "new": "One message per field, picked in a fixed order (missing, then length, then content)",
+      "source": "Gap Analysis B16 · ADR 0013",
+      "status": "decided",
+      "verifiedBy": "MemberRestControllerTest.fieldBreakingSeveralRulesAlwaysGetsTheSameMessage"
     },
     {
       "id": "A3",
       "change": "Member list pagination",
       "legacy": "Whole list, unbounded",
-      "new": "Not decided",
-      "source": "Gap Analysis A3",
-      "status": "open",
-      "verifiedBy": null
+      "new": "Optional ?page=&size= (max 100), same array, Link rel=next; no parameters = whole list",
+      "source": "Gap Analysis A3 · ADR 0013",
+      "status": "decided",
+      "verifiedBy": "MemberListPagingTest.aPageWithMoreAfterItLinksToTheNextOne"
     }
   ]
 }

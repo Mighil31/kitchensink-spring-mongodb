@@ -1,0 +1,42 @@
+meta {
+  name: Name with symbols
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{baseUrl}}/members
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "<b>bold</b>",
+    "email": "symbols@example.com",
+    "phoneNumber": "2125551234"
+  }
+}
+
+assert {
+  res.status: eq 400
+}
+
+tests {
+  test("is a ProblemDetail", function() {
+    expect(res.getHeader("content-type")).to.contain("application/problem+json");
+    expect(res.getBody()).to.include.keys("title", "status", "detail", "instance");
+  });
+
+  test("names allow letters, spaces and . ' - only", function() {
+    expect(res.getBody().errors).to.deep.equal({
+      name: "must contain only letters, spaces, hyphens, apostrophes and periods"
+    });
+  });
+}
+
+docs {
+  Gaps B11 and B19 (ADR 0013). Legacy only banned the digits 0-9 while its message said "letters
+  and spaces", so it stored `<b>bold</b>`, emoji and names with other scripts' digits. Letters of
+  any script are fine: try `Zoë Ångström` or `Jean-Luc O'Brien`.
+}

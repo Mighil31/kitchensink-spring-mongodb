@@ -19,17 +19,17 @@
         <div class="field">
             <label for="name" th:text="#{memberNameLabel}">Name:</label>
             <input type="text" th:field="*{name}">
-            <span class="invalid" th:if="${#fields.hasErrors('name')}" th:text="${#fields.errors('name')[0]}"></span>
+            <span class="invalid" th:if="${fieldMessages?.get('name')}" th:text="${fieldMessages.get('name')}"></span>
         </div>
         <div class="field">
             <label for="email" th:text="#{memberEmailLabel}">Email:</label>
             <input type="text" th:field="*{email}">
-            <span class="invalid" th:if="${#fields.hasErrors('email')}" th:text="${#fields.errors('email')[0]}"></span>
+            <span class="invalid" th:if="${fieldMessages?.get('email')}" th:text="${fieldMessages.get('email')}"></span>
         </div>
         <div class="field">
             <label for="phoneNumber" th:text="#{memberPhoneLabel}">Phone #:</label>
             <input type="text" th:field="*{phoneNumber}">
-            <span class="invalid" th:if="${#fields.hasErrors('phoneNumber')}" th:text="${#fields.errors('phoneNumber')[0]}"></span>
+            <span class="invalid" th:if="${fieldMessages?.get('phoneNumber')}" th:text="${fieldMessages.get('phoneNumber')}"></span>
         </div>
 
         <div class="actions">

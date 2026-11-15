@@ -39,7 +39,7 @@ class MemberControllerTest {
 
     @Test
     void pageShowsFormAndEmptyList() {
-        given(repository.findAllByOrderByNameAsc()).willReturn(List.of());
+        given(repository.findAllByOrderByNameAscIdAsc()).willReturn(List.of());
 
         assertThat(mvc.get().uri("/"))
                 .hasStatusOk()
@@ -51,7 +51,7 @@ class MemberControllerTest {
 
     @Test
     void pageListsMembersWithRestLinks() {
-        given(repository.findAllByOrderByNameAsc()).willReturn(List.of(JANE));
+        given(repository.findAllByOrderByNameAscIdAsc()).willReturn(List.of(JANE));
 
         assertThat(mvc.get().uri("/"))
                 .hasStatusOk()
@@ -65,7 +65,7 @@ class MemberControllerTest {
     @Test
     void memberDataIsEscaped() {
         Member markup = new Member(new ObjectId(), "<b>bold</b>", "x@example.com", "2125551234", null);
-        given(repository.findAllByOrderByNameAsc()).willReturn(List.of(markup));
+        given(repository.findAllByOrderByNameAscIdAsc()).willReturn(List.of(markup));
 
         assertThat(mvc.get().uri("/"))
                 .bodyText()
@@ -86,7 +86,7 @@ class MemberControllerTest {
 
     @Test
     void pageAfterRedirectSaysRegistered() {
-        given(repository.findAllByOrderByNameAsc()).willReturn(List.of(JANE));
+        given(repository.findAllByOrderByNameAscIdAsc()).willReturn(List.of(JANE));
 
         assertThat(mvc.get().uri("/").flashAttr("registered", true)).bodyText().contains("Registered!");
     }
@@ -96,7 +96,7 @@ class MemberControllerTest {
         assertThat(submit("R2D2", "not-an-email", "123"))
                 .hasStatusOk()
                 .bodyText()
-                .contains("must contain only letters and spaces")
+                .contains("must contain only letters, spaces, hyphens, apostrophes and periods")
                 .contains("must be a well-formed email address")
                 .contains("size must be between 10 and 12")
                 .contains("value=\"R2D2\"", "value=\"not-an-email\"");
@@ -109,8 +109,9 @@ class MemberControllerTest {
                 .hasStatusOk()
                 .bodyText()
                 .contains("size must be between 1 and 25", "must not be empty")
-                // "" breaks both phone rules; which one shows is not fixed (gap B16, open).
-                .containsAnyOf("size must be between 10 and 12", "numeric value out of bounds");
+                // "" breaks both phone rules; the fixed order shows the size rule (gap B16).
+                .contains("size must be between 10 and 12")
+                .doesNotContain("numeric value out of bounds");
         then(registration).should(never()).register(any());
     }
 
@@ -149,7 +150,7 @@ class MemberControllerTest {
                         .param("phoneNumber", "2125551234"))
                 .hasStatusOk()
                 .bodyText()
-                .contains("Registro de Usuarios", "debe contener sólo letras y espacios");
+                .contains("Registro de Usuarios", "sólo debe contener letras, espacios, guiones, apóstrofos y puntos");
     }
 
     private MvcTestResult submit(String name, String email, String phone) {

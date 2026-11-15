@@ -1,7 +1,7 @@
 {
   "label": "JBoss EAP 8.1 Update 9.1, kitchensink 8.1.x @ 476de14",
-  "date": "2026-11-14",
-  "suiteCommit": "06d23a4",
+  "date": "2026-11-15",
+  "suiteCommit": "36680f8",
   "baseUrl": "http://localhost:8080/kitchensink/rest",
   "format": "legacy",
   "java": "21.0.13"

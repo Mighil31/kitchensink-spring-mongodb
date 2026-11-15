@@ -50,7 +50,8 @@ class MemberMigrationsIT {
                         "members-email-unique-index",
                         "members-name-index",
                         "members-legacy-id-index",
-                        "members-lowercase-emails");
+                        "members-lowercase-emails",
+                        "members-name-id-index");
     }
 
     @Test
@@ -68,11 +69,14 @@ class MemberMigrationsIT {
     }
 
     @Test
-    void nameIndexHasNoCollation() {
-        Document index = index("name_asc");
+    void nameIndexHasIdTieBreakAndNoCollation() {
+        Document index = index("name_id_asc");
 
-        assertThat(index.get("key", Document.class)).isEqualTo(new Document("name", 1));
+        assertThat(index.get("key", Document.class)).isEqualTo(new Document("name", 1).append("_id", 1));
         assertThat(index).doesNotContainKeys("unique", "collation");
+        assertThat(members().listIndexes().map(i -> i.getString("name")).into(new ArrayList<>()))
+                .as("_0007 replaced name_asc")
+                .doesNotContain("name_asc");
     }
 
     @Test

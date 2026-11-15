@@ -88,7 +88,7 @@ class SecurityConfigTest {
 
         @Test
         void correctCredentialsReachTheApi() {
-            given(repository.findAllByOrderByNameAsc()).willReturn(List.of());
+            given(repository.findAllByOrderByNameAscIdAsc()).willReturn(List.of());
 
             assertThat(mvc.get().uri(MEMBERS).with(httpBasic("test-client", "test-password")))
                     .hasStatusOk();
@@ -129,7 +129,7 @@ class SecurityConfigTest {
         @Test
         void loginDoesNotRewriteTheStoredPassword() {
             String before = users.loadUserByUsername("test-client").getPassword();
-            given(repository.findAllByOrderByNameAsc()).willReturn(List.of());
+            given(repository.findAllByOrderByNameAscIdAsc()).willReturn(List.of());
 
             assertThat(mvc.get().uri(MEMBERS).with(httpBasic("test-client", "test-password")))
                     .hasStatusOk();
@@ -157,7 +157,7 @@ class SecurityConfigTest {
 
         @Test
         void pageIsPublicWithCsrfTokenInTheForm() {
-            given(repository.findAllByOrderByNameAsc()).willReturn(List.of());
+            given(repository.findAllByOrderByNameAscIdAsc()).willReturn(List.of());
 
             assertThat(mvc.get().uri("/"))
                     .hasStatusOk()
@@ -191,7 +191,7 @@ class SecurityConfigTest {
 
         @Test
         void pageCarriesTheSecurityHeaders() {
-            given(repository.findAllByOrderByNameAsc()).willReturn(List.of());
+            given(repository.findAllByOrderByNameAscIdAsc()).willReturn(List.of());
 
             assertSecurityHeaders(mvc.get().uri("/").exchange());
         }

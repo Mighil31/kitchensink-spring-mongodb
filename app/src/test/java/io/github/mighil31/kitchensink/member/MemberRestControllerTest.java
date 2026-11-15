@@ -16,6 +16,7 @@ import org.bson.types.ObjectId;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
@@ -53,7 +54,7 @@ class MemberRestControllerTest {
     @Test
     void listReturnsMembersInRepositoryOrder() {
         Member ann = new Member(new ObjectId(), "Ann", "ann@example.com", "2125550000", null);
-        given(repository.findAllByOrderByNameAsc()).willReturn(List.of(ann, JANE));
+        given(repository.findAllByOrderByNameAscIdAsc()).willReturn(List.of(ann, JANE));
 
         assertThat(mvc.get().uri("/rest/members"))
                 .hasStatusOk()
@@ -66,7 +67,7 @@ class MemberRestControllerTest {
 
     @Test
     void emptyListIsAnEmptyArray() {
-        given(repository.findAllByOrderByNameAsc()).willReturn(List.of());
+        given(repository.findAllByOrderByNameAscIdAsc()).willReturn(List.of());
 
         assertThat(mvc.get().uri("/rest/members")).hasStatusOk().bodyJson().isEqualTo("[]");
     }
@@ -113,7 +114,7 @@ class MemberRestControllerTest {
     /** The client sees a generic message and an id; the log has the same id and the cause. */
     @Test
     void unexpectedErrorIs500ProblemWithTraceIdAndNoInternals(CapturedOutput log) throws Exception {
-        given(repository.findAllByOrderByNameAsc())
+        given(repository.findAllByOrderByNameAscIdAsc())
                 .willThrow(new DataAccessResourceFailureException("Timed out connecting to mongo:27017"));
 
         MvcTestResult result = mvc.get().uri("/rest/members").exchange();
@@ -133,6 +134,8 @@ class MemberRestControllerTest {
                 .contains("traceId=" + traceId)
                 .contains("DataAccessResourceFailureException: Timed out connecting to mongo:27017");
     }
+
+    static final String NAME_RULE = "must contain only letters, spaces, hyphens, apostrophes and periods";
 
     static final String VALID_BODY = """
             {"name": "Jane Doe", "email": "jane@example.com", "phoneNumber": "2125551234"}
@@ -173,7 +176,7 @@ class MemberRestControllerTest {
                 .bodyJson()
                 .isLenientlyEqualTo("""
                         {"status": 400, "detail": "Validation failed", "instance": "/rest/members",
-                         "errors": {"name": "must contain only letters and spaces",
+                         "errors": {"name": "must contain only letters, spaces, hyphens, apostrophes and periods",
                                     "email": "must be a well-formed email address",
                                     "phoneNumber": "size must be between 10 and 12"}}
                         """);
@@ -193,10 +196,10 @@ class MemberRestControllerTest {
                         "phoneNumber", "must not be null"));
     }
 
-    /** Gap B3: legacy stored a name of only spaces. Unicode spaces and newlines count too. */
+    /** Gap B3: legacy stored a name of only spaces. */
     @ParameterizedTest
-    @ValueSource(strings = {" ", "   ", "\\t\\n", "\\u00a0\\u2003"})
-    void nameOfOnlyWhitespaceIs400(String name) {
+    @ValueSource(strings = {" ", "   "})
+    void nameOfOnlySpacesIs400(String name) {
         assertThat(post("""
                         {"name": "%s", "email": "jane@example.com", "phoneNumber": "2125551234"}
                         """.formatted(name)))
@@ -205,6 +208,113 @@ class MemberRestControllerTest {
                 .extractingPath("$.errors")
                 .isEqualTo(Map.of("name", "must not be blank"));
         verify(registration, never()).register(any());
+    }
+
+    /**
+     * Other whitespace isn't a name character (only the plain space is), so tabs, newlines and
+     * non-breaking spaces get the character rule's message. They also break the blank rule; the
+     * fixed order picks the same message every time (gap B16).
+     */
+    @ParameterizedTest
+    @ValueSource(strings = {"\\t\\n", "\\u00a0\\u2003", "Mary Ann\\nLee"})
+    void otherWhitespaceIsNotANameCharacter(String name) {
+        assertThat(post("""
+                        {"name": "%s", "email": "jane@example.com", "phoneNumber": "2125551234"}
+                        """.formatted(name)))
+                .hasStatus(HttpStatus.BAD_REQUEST)
+                .bodyJson()
+                .extractingPath("$.errors")
+                .isEqualTo(Map.of("name", NAME_RULE));
+    }
+
+    /** Gaps B11 and B19: legacy only banned ASCII 0-9, so markup, emoji and other digits got through. */
+    @ParameterizedTest
+    @ValueSource(strings = {"<b>bold</b>", "Ana\\u0661", "Ana\\uff11", "\\ud83d\\ude00", "Jane_Doe", "R2D2", "Jane!"})
+    void nameWithOtherCharactersIs400(String name) {
+        assertThat(post("""
+                        {"name": "%s", "email": "jane@example.com", "phoneNumber": "2125551234"}
+                        """.formatted(name)))
+                .hasStatus(HttpStatus.BAD_REQUEST)
+                .bodyJson()
+                .extractingPath("$.errors")
+                .isEqualTo(Map.of("name", NAME_RULE));
+    }
+
+    /** Letters of any script, with accents typed as one or two code points, and name punctuation. */
+    @ParameterizedTest
+    @ValueSource(
+            strings = {
+                "Zoë Ångström",
+                "Jose\\u0301 Pe\\u0301rez",
+                "O'Brien",
+                "O\\u2019Brien",
+                "Jean-Luc",
+                "St. John",
+                "李小龙",
+                "Владимир"
+            })
+    void namesInAnyScriptAreAccepted(String name) {
+        given(registration.register(any())).willReturn(JANE);
+
+        assertThat(post("""
+                        {"name": "%s", "email": "jane@example.com", "phoneNumber": "2125551234"}
+                        """.formatted(name))).hasStatus(HttpStatus.CREATED);
+    }
+
+    /** Gap B18: legacy's @Digits parsed the text as a number, so these were stored as phone numbers. */
+    @ParameterizedTest
+    @ValueSource(
+            strings = {
+                "+123456789",
+                "-123456789",
+                "1.23456789E9",
+                "\\u0661\\u0662\\u0663\\u0664\\u0665\\u0666\\u0667\\u0668\\u0669\\u0660"
+            })
+    void phoneThatOnlyParsesAsANumberIs400(String phone) {
+        assertThat(post("""
+                        {"name": "Jane Doe", "email": "jane@example.com", "phoneNumber": "%s"}
+                        """.formatted(phone)))
+                .hasStatus(HttpStatus.BAD_REQUEST)
+                .bodyJson()
+                .extractingPath("$.errors")
+                .isEqualTo(Map.of("phoneNumber", "must contain only the digits 0-9"));
+    }
+
+    /**
+     * Gap B16: legacy picked one of the broken rules at random. Now a fixed order decides (length
+     * before content), so repeating the request always gives the same message. What legacy
+     * rejected keeps one of legacy's messages.
+     */
+    @ParameterizedTest
+    @CsvSource(
+            delimiter = '|',
+            value = {
+                "''|size must be between 10 and 12",
+                "1234567890123|size must be between 10 and 12",
+                "12345abcde|numeric value out of bounds (<12 digits>.<0 digits> expected)",
+                "+123456789012|size must be between 10 and 12"
+            })
+    void fieldBreakingSeveralRulesAlwaysGetsTheSameMessage(String phone, String message) {
+        for (int i = 0; i < 20; i++) {
+            assertThat(post("""
+                            {"name": "Jane Doe", "email": "jane@example.com", "phoneNumber": "%s"}
+                            """.formatted(phone)))
+                    .bodyJson()
+                    .extractingPath("$.errors.phoneNumber")
+                    .isEqualTo(message);
+        }
+    }
+
+    /** Gap B10, decided: unknown fields are ignored, as on legacy, so clients sending extras keep working. */
+    @Test
+    void unknownFieldsAreIgnored() {
+        given(registration.register(any())).willReturn(JANE);
+
+        assertThat(post("""
+                        {"name": "Jane Doe", "email": "jane@example.com", "phoneNumber": "2125551234",
+                         "nickname": "JD", "admin": true}
+                        """)).hasStatus(HttpStatus.CREATED);
+        then(registration).should().register(new MemberRequest("Jane Doe", "jane@example.com", "2125551234"));
     }
 
     /** The empty name keeps legacy's single message, which the contract suite checks. */
@@ -220,7 +330,7 @@ class MemberRestControllerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {" Jane", "Jane Doe ", "Mary Ann\\nLee"})
+    @ValueSource(strings = {" Jane", "Jane Doe ", "Mary  Ann Lee"})
     void namesWithSomeWhitespaceAreStillAccepted(String name) {
         given(registration.register(any())).willReturn(JANE);
 
@@ -241,7 +351,7 @@ class MemberRestControllerTest {
                 .hasStatus(HttpStatus.BAD_REQUEST)
                 .bodyJson()
                 .extractingPath("$.errors.name")
-                .isEqualTo("debe contener sólo letras y espacios");
+                .isEqualTo("sólo debe contener letras, espacios, guiones, apóstrofos y puntos");
     }
 
     @Test
