@@ -49,10 +49,10 @@
       "id": "B2",
       "change": "Email uniqueness ignores case",
       "legacy": "JOHN@x.com accepted next to john@x.com",
-      "new": "409 Conflict",
-      "source": "Gap Analysis B2",
+      "new": "Emails stored lower-case; JOHN@x.com gets 409 Conflict",
+      "source": "Gap Analysis B2 · ADR 0011",
       "status": "decided",
-      "verifiedBy": null
+      "verifiedBy": "MemberRegistrationIT.emailIsStoredLowerCaseSoUniquenessIgnoresCase"
     },
     {
       "id": "B3",
@@ -61,7 +61,7 @@
       "new": "400 validation error",
       "source": "Gap Analysis B3",
       "status": "decided",
-      "verifiedBy": null
+      "verifiedBy": "MemberRestControllerTest.nameOfOnlyWhitespaceIs400"
     },
     {
       "id": "B5, B17",

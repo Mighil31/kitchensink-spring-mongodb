@@ -49,7 +49,8 @@ class MemberMigrationsIT {
                         "create-members-collection",
                         "members-email-unique-index",
                         "members-name-index",
-                        "members-legacy-id-index");
+                        "members-legacy-id-index",
+                        "members-lowercase-emails");
     }
 
     @Test
@@ -106,14 +107,26 @@ class MemberMigrationsIT {
                 .isInstanceOf(DuplicateKeyException.class);
     }
 
+    /**
+     * Gap B2 design (ADR 0011): the index compares case-sensitively; case-insensitive uniqueness
+     * comes from the app storing emails lower-cased. Writes that bypass the app aren't covered.
+     */
     @Test
-    void emailUniquenessIsCaseSensitiveUntilPhase5() {
-        // Legacy behaviour (gap B2); Phase 5 normalises emails before they reach this index.
-        mongoTemplate.insert(Member.of("Jane Doe", "jane@example.com", "2125551234"));
-
-        mongoTemplate.insert(Member.of("Jane Doe", "JANE@example.com", "2125551234"));
-
+    void indexIsCaseSensitiveSoTheAppNormalizesEmails() {
+        members()
+                .insertOne(new Document("name", "Jane Doe")
+                        .append("email", "jane@example.com")
+                        .append("phoneNumber", "2125551234"));
+        members()
+                .insertOne(new Document("name", "Jane Doe")
+                        .append("email", "JANE@example.com")
+                        .append("phoneNumber", "2125551234"));
         assertThat(members().countDocuments()).isEqualTo(2);
+
+        members().deleteMany(new Document());
+        mongoTemplate.insert(Member.of("Jane Doe", "jane@example.com", "2125551234"));
+        assertThatThrownBy(() -> mongoTemplate.insert(Member.of("Jane Doe", "JANE@example.com", "2125551234")))
+                .isInstanceOf(DuplicateKeyException.class);
     }
 
     @Test

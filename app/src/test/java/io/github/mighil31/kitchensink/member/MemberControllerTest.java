@@ -114,6 +114,16 @@ class MemberControllerTest {
         then(registration).should(never()).register(any());
     }
 
+    /** Gap B3 on the form too: the same MemberRequest rules apply. */
+    @Test
+    void blankNameIsRejected() {
+        assertThat(submit("   ", "jane@example.com", "2125551234"))
+                .hasStatusOk()
+                .bodyText()
+                .contains("must not be blank");
+        then(registration).should(never()).register(any());
+    }
+
     /** Gap B7: legacy showed the database's exception text; this shows a field message. */
     @Test
     void takenEmailIsAFieldErrorNotExceptionText() {

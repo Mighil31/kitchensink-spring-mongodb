@@ -49,6 +49,18 @@ class MemberRegistrationIT {
         assertThat(repository.count()).isEqualTo(1);
     }
 
+    /** Gap B2: legacy accepted JANE@example.com next to jane@example.com. */
+    @Test
+    void emailIsStoredLowerCaseSoUniquenessIgnoresCase() {
+        Member saved = registration.register(new MemberRequest("Jane Doe", "Jane.Doe@Example.COM", "2125551234"));
+
+        assertThat(repository.findById(saved.id())).map(Member::email).contains("jane.doe@example.com");
+        assertThatThrownBy(
+                        () -> registration.register(new MemberRequest("Other", "JANE.DOE@example.com", "2125550000")))
+                .isInstanceOf(EmailAlreadyRegisteredException.class);
+        assertThat(repository.count()).isEqualTo(1);
+    }
+
     /** Gap B1: legacy's check-then-insert let concurrent registrations both succeed. */
     @Test
     void concurrentRegistrationsWithSameEmailStoreExactlyOne() throws Exception {

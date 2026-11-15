@@ -35,6 +35,7 @@ class MigrationRollbackIT {
         new _0003__MembersNameIndex().apply(scratch);
         new _0004__MembersLegacyIdIndex().apply(scratch);
         new _0005__SeedJohnSmith().apply(scratch);
+        new _0006__LowercaseMemberEmails().apply(scratch);
     }
 
     @AfterEach
@@ -44,6 +45,10 @@ class MigrationRollbackIT {
 
     @Test
     void rollbacksInReverseOrderUndoEverything() {
+        // Lower-casing can't be undone (the original case is gone) and needn't be: a no-op.
+        new _0006__LowercaseMemberEmails().rollback(scratch);
+        assertThat(scratch.getCollection("members").countDocuments()).isEqualTo(1);
+
         new _0005__SeedJohnSmith().rollback(scratch);
         assertThat(scratch.getCollection("members").countDocuments()).isZero();
 

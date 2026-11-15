@@ -193,6 +193,42 @@ class MemberRestControllerTest {
                         "phoneNumber", "must not be null"));
     }
 
+    /** Gap B3: legacy stored a name of only spaces. Unicode spaces and newlines count too. */
+    @ParameterizedTest
+    @ValueSource(strings = {" ", "   ", "\\t\\n", "\\u00a0\\u2003"})
+    void nameOfOnlyWhitespaceIs400(String name) {
+        assertThat(post("""
+                        {"name": "%s", "email": "jane@example.com", "phoneNumber": "2125551234"}
+                        """.formatted(name)))
+                .hasStatus(HttpStatus.BAD_REQUEST)
+                .bodyJson()
+                .extractingPath("$.errors")
+                .isEqualTo(Map.of("name", "must not be blank"));
+        verify(registration, never()).register(any());
+    }
+
+    /** The empty name keeps legacy's single message, which the contract suite checks. */
+    @Test
+    void emptyNameStillReportsOnlyTheSizeRule() {
+        assertThat(post("""
+                        {"name": "", "email": "jane@example.com", "phoneNumber": "2125551234"}
+                        """))
+                .hasStatus(HttpStatus.BAD_REQUEST)
+                .bodyJson()
+                .extractingPath("$.errors")
+                .isEqualTo(Map.of("name", "size must be between 1 and 25"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {" Jane", "Jane Doe ", "Mary Ann\\nLee"})
+    void namesWithSomeWhitespaceAreStillAccepted(String name) {
+        given(registration.register(any())).willReturn(JANE);
+
+        assertThat(post("""
+                        {"name": "%s", "email": "jane@example.com", "phoneNumber": "2125551234"}
+                        """.formatted(name))).hasStatus(HttpStatus.CREATED);
+    }
+
     @Test
     void messagesFollowAcceptLanguage() {
         assertThat(mvc.post()

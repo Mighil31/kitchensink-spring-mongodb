@@ -1,5 +1,6 @@
 package io.github.mighil31.kitchensink.member;
 
+import java.util.Locale;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -19,9 +20,20 @@ public record Member(@Id ObjectId id, String name, String email, String phoneNum
 
     public static final String COLLECTION = "members";
 
-    /** A new member, without an id yet. */
+    /** A new member, without an id yet. The email is stored normalized: see {@link #normalizeEmail}. */
     public static Member of(String name, String email, String phoneNumber) {
-        return new Member(null, name, email, phoneNumber, null);
+        return new Member(null, name, normalizeEmail(email), phoneNumber, null);
+    }
+
+    /**
+     * Lower-cased, so the unique index on {@code email} treats {@code Jane@Example.com} and
+     * {@code jane@example.com} as the same address (gap B2, ADR 0011). Strictly the part before the
+     * {@code @} may be case-sensitive, but no mainstream provider treats it so, and two members
+     * differing only by case is the bug. Not trimmed: {@code @Email} already rejects surrounding spaces.
+     * {@code Locale.ROOT}, so the result doesn't depend on the server's language (Turkish dotless i).
+     */
+    public static String normalizeEmail(String email) {
+        return email.toLowerCase(Locale.ROOT);
     }
 
     public Member withId(ObjectId id) {
