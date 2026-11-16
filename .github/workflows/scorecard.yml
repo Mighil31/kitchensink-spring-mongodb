@@ -29,7 +29,7 @@ jobs:
           python-version: "3.13"
       - name: Build scorecard from committed data
         run: python3 scripts/scorecard.py build --out _site/index.html
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: _site
 
