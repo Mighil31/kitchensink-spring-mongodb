@@ -32,7 +32,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
-/** Behaviour behind authentication; the authentication itself is in ApiSecurityTest. */
+/** Behaviour behind authentication; the authentication itself is in SecurityConfigTest. */
 @WebMvcTest(MemberRestController.class)
 @Import(SecurityConfig.class)
 @WithMockUser(roles = "API_CLIENT")

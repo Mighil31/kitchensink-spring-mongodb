@@ -6,11 +6,9 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 /**
- * Replaces legacy's {@code @Stateless MemberRegistration}.
- *
- * <p>Legacy checked for the email, then inserted: two concurrent requests could both pass the check
- * (gap B1). Here there is no check; the unique {@code email} index decides, atomically, and the
- * loser gets {@link EmailAlreadyRegisteredException}. Legacy's CDI event is not ported (ADR 0012).
+ * No "does this email exist?" check before inserting: two concurrent requests could both pass it.
+ * The unique {@code email} index decides atomically, and the loser gets {@link
+ * EmailAlreadyRegisteredException}.
  */
 @Service
 public class MemberRegistration {

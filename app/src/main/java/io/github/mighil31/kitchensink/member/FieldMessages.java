@@ -8,17 +8,14 @@ import java.util.function.Function;
 import org.springframework.validation.FieldError;
 
 /**
- * One message per field, the same one every time (gap B16, ADR 0013).
- *
- * <p>A value can break several rules at once: an empty phone number breaks both {@code @Size} and
- * {@code @Digits}. The validator reports them in no fixed order, and legacy showed whichever came
- * first, so the same request could get different messages. Here the rule that ranks first in
- * {@link #PRIORITY} wins: a missing value first, then length, then content. Ties (the same rule
- * twice) go to the alphabetically first message, so even those are stable.
+ * One message per field, the same one every time (ADR 0013). A value can break several rules (an
+ * empty phone breaks {@code @Size} and {@code @Digits}) and the validator reports them in no fixed
+ * order. The rule first in {@link #PRIORITY} wins; a tie (the same rule twice) goes to the
+ * alphabetically first message.
  */
 final class FieldMessages {
 
-    /** Constraint names as Spring reports them (the annotation's simple name). Unknown ones rank last. */
+    /** Missing, then length, then content. Annotation simple names; unknown ones rank last. */
     static final List<String> PRIORITY = List.of("NotNull", "NotEmpty", "Size", "Digits", "Pattern", "Email");
 
     private FieldMessages() {}

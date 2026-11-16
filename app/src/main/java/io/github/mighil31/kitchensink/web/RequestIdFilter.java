@@ -14,12 +14,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Gives every request an id, so its log lines can be found together: in the logs (MDC key
- * {@value #MDC_KEY}), in the {@value #HEADER} response header, and in the body of a 500.
- *
- * <p>An id from the gateway is reused, so the gateway's and the app's logs share it, but only if
- * it looks like an id: anything else could forge log lines (newlines) or flood them (length).
- * Runs first, before security, so 401s carry an id too.
+ * Gives every request an id: on every log line (MDC), in the response header and in a 500's body.
+ * An incoming id is reused only if it looks like one: anything else could forge log lines
+ * (newlines) or flood them (length). Runs before security, so 401s get an id too.
  */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)

@@ -22,11 +22,10 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 /**
- * Every API error as RFC 9457 ProblemDetail (ADR 0003): validation 400 and duplicate email 409 with
- * an {@code errors} map of field to message (the per-field detail legacy clients had), unknown
- * member 404, anything unexpected 500. The base class turns Spring MVC's own errors (unreadable
- * body, unsupported media type) into ProblemDetail too, with generic text: no parser or validator
- * internals reach the client (gaps B5, B6, B17).
+ * The member API's errors as RFC 9457 ProblemDetail (ADR 0003). 400 and 409 carry an {@code errors}
+ * map of field to message. The base class covers Spring MVC's own errors (unreadable body and so
+ * on) with generic text, so no parser or validator internals reach the client. Errors raised before
+ * a controller is chosen are in {@link ApiRoutingExceptionHandler}.
  */
 @RestControllerAdvice(assignableTypes = MemberRestController.class)
 class MemberApiExceptionHandler extends ResponseEntityExceptionHandler {
@@ -71,11 +70,7 @@ class MemberApiExceptionHandler extends ResponseEntityExceptionHandler {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, "Member not found");
     }
 
-    /**
-     * The client gets a generic message and the request id; the log line has the same id (every
-     * line of the request does, see {@link RequestIdFilter}) and the full exception, so a reported
-     * error can be found without exposing internals.
-     */
+    /** Generic message plus the request id, which finds the full exception in the log. */
     @ExceptionHandler
     ProblemDetail unexpected(Exception ex, HttpServletRequest request) {
         log.error("Unexpected error on {} {}", request.getMethod(), request.getRequestURI(), ex);
@@ -84,7 +79,6 @@ class MemberApiExceptionHandler extends ResponseEntityExceptionHandler {
         return body;
     }
 
-    /** One message per field, as legacy clients expect, chosen in a fixed order (gap B16). */
     private static Map<String, String> fieldErrors(MethodArgumentNotValidException ex) {
         return FieldMessages.firstPerField(ex.getFieldErrors(), FieldError::getDefaultMessage);
     }

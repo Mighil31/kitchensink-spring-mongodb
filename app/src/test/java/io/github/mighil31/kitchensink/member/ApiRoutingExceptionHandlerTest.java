@@ -44,7 +44,7 @@ class ApiRoutingExceptionHandlerTest {
                         """);
     }
 
-    /** Found by the Bruno collection: the status was right, the body was Boot's default error JSON. */
+    /** Without the handler the status is right but the body is Boot's default error JSON. */
     @Test
     void nonJsonBodyIs415ProblemListingAcceptedTypes() {
         MvcTestResult result = mvc.post()

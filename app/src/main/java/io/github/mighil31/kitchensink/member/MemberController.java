@@ -14,12 +14,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
- * The registration page: replaces legacy's JSF {@code index.xhtml}, its {@code @Model
- * MemberController} and the {@code MemberListProducer} (ADR 0004).
- *
- * <p>Post/Redirect/Get: a successful POST redirects, so refreshing doesn't register twice (gap
- * B14), and the GET loads the list, which is why legacy's CDI event isn't needed (ADR 0012).
- * Errors are field messages, never exception text (gap B7).
+ * The registration page. Post/Redirect/Get: a successful POST redirects, so a refresh doesn't
+ * register twice, and the GET reloads the list (ADR 0012).
  */
 @Controller
 class MemberController {
@@ -58,7 +54,6 @@ class MemberController {
                 result.rejectValue("email", "emailTaken", "Email taken");
             }
         }
-        // One message per field, the same one every time (gap B16), in the request's language.
         Locale locale = LocaleContextHolder.getLocale();
         model.addAttribute(
                 "fieldMessages",

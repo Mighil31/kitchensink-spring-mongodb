@@ -2,49 +2,45 @@ spring:
   application:
     name: kitchensink
   messages:
-    # UI text (messages*.properties). English is the default whatever the server's locale is.
+    # Without this, a browser asking for an unsupported language gets the server's locale, not English.
     fallback-to-system-locale: false
   mongodb:
-    # Overridden by env MONGODB_URI (docker compose) or by Testcontainers in tests.
     uri: ${MONGODB_URI:mongodb://localhost:27017/kitchensink}
   data:
     mongodb:
-      # Indexes are versioned Flamingock migrations, not created from annotations (ADR 0005).
+      # Indexes are Flamingock migrations (ADR 0005).
       auto-index-creation: false
 
 flamingock:
-  # Run migrations while the context starts, before the web server accepts requests.
-  # The default (APPLICATION_RUNNER) runs them after the port is already open.
+  # Migrate before the web server opens its port. The default runs them after it's already open.
   management-mode: INITIALIZING_BEAN
 
 server:
-  # 8080 is the legacy JBoss app; running both side by side is the point of the contract suite.
+  # Not 8080: that's the legacy app, which the contract suite runs side by side.
   port: ${PORT:8081}
   shutdown: graceful
   servlet:
     session:
-      # Session id only in a cookie, never rewritten into URLs (;jsessionid=...), where it would leak
-      # through logs and Referer headers. The flash message after registering creates the session.
+      # The UI's session holds the CSRF token and the "Registered!" flash message. Cookie only, never
+      # in URLs (;jsessionid=...), where it leaks through logs and Referer headers.
       tracking-modes: cookie
       cookie:
-        # HttpOnly is Boot's default; stated here so the security settings are all in one place.
         http-only: true
         same-site: lax
 
 kitchensink:
   api:
-    # The REST API's one client (ADR 0007). No defaults: the app won't start without them.
+    # Required (ADR 0007): empty values fail validation at startup.
     username: ${KITCHENSINK_API_USERNAME:}
     password: ${KITCHENSINK_API_PASSWORD:}
 
 management:
   metrics:
     distribution:
-      # Latency histogram buckets, so Prometheus can compute p95 across requests and instances.
+      # Histogram buckets, so Prometheus can compute p95 across instances.
       percentiles-histogram:
         http.server.requests: true
-  # Actuator lives on its own port, which the gateway never exposes: metrics and other operational
-  # endpoints stay internal. Only the probes below are also on the public port.
+  # Internal port, never exposed by the gateway. Only the probes are also on the public port.
   server:
     port: ${MANAGEMENT_PORT:9091}
   endpoints:
@@ -55,15 +51,14 @@ management:
     health:
       probes:
         enabled: true
-        # /livez and /readyz on the main port, for the load balancer or Kubernetes.
+        # /livez and /readyz on the public port.
         add-additional-paths: true
       group:
-        # Ready = can serve requests, so MongoDB counts. Liveness doesn't include it: restarting the
-        # app doesn't fix the database.
+        # MongoDB counts for readiness only: restarting the app wouldn't fix the database.
         readiness:
           include: readinessState, mongo
 
 logging:
   pattern:
-    # The request id (RequestIdFilter) on every log line written while handling a request.
+    # RequestIdFilter's id on every log line of a request.
     correlation: "[%X{requestId:-}] "

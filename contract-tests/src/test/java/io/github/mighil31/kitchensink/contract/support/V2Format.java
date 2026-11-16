@@ -3,10 +3,7 @@ package io.github.mighil31.kitchensink.contract.support;
 import io.restassured.response.Response;
 import java.util.Map;
 
-/**
- * Spring Boot + MongoDB app: POST returns 201 + Location, ids are 24-hex ObjectIds.
- * Not exercised until the new app exists (Phase 4).
- */
+/** Spring Boot + MongoDB app: POST returns 201 + Location, ids are 24-hex ObjectIds. */
 final class V2Format implements ApiFormat {
 
     @Override

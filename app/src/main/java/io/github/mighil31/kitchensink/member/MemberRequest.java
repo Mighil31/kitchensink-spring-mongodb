@@ -8,23 +8,14 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 /**
- * Body of {@code POST /rest/members} and of the registration form. Legacy's {@code Member}
- * constraints, with the fixes decided in ADR 0013:
+ * Body of {@code POST /rest/members} and of the registration form (rules: ADR 0013). No {@code id}
+ * field, so a client can't choose one. Unknown JSON fields are ignored.
  *
- * <ul>
- *   <li>{@code name}: letters of any script, spaces and {@code . ' ’ -} only. Legacy's rule only
- *       banned ASCII 0-9 while its message said "letters and spaces", so {@code <b>bold</b>},
- *       emoji and {@code Ana١} got through (gaps B11, B19). A name of only spaces is rejected
- *       (gap B3).
- *   <li>{@code phoneNumber}: ASCII digits only. Legacy's {@code @Digits} parses the text as a
- *       number, so {@code +123456789}, {@code 1.23456789E9} and Arabic-Indic digits passed (gap
- *       B18). {@code @Digits} stays so that what legacy rejected keeps legacy's message; the
- *       pattern only reports what legacy let through.
- * </ul>
+ * <p>{@code @Digits} alone accepts {@code +123456789} and {@code 1.23456789E9} (it parses the text
+ * as a number), hence the extra pattern. {@code @Digits} is kept so that values legacy rejected keep
+ * legacy's message, which the contract suite checks.
  *
- * <p>A value breaking several rules reports one message, picked in a fixed order ({@link
- * FieldMessages}, gap B16). No {@code id}: a client can't choose one (gap B4). Unknown JSON fields
- * are ignored, as on legacy (gap B10).
+ * <p>A value can break several rules; {@link FieldMessages} picks which message is shown.
  */
 public record MemberRequest(
         @NotNull
@@ -49,10 +40,9 @@ public record MemberRequest(
     static final String NAME_CHARACTERS = "[\\p{L}\\p{M} .'’-]*";
 
     /**
-     * Gap B3. Not {@code @NotBlank}: for {@code ""} it would fail alongside {@code @Size}. This lets
-     * {@code ""} through, so {@code ""} keeps legacy's size message, and rejects strings of
-     * whitespace only. {@code (?U)}: Unicode whitespace, so non-breaking spaces count too. {@code
-     * (?s)}: {@code .} also matches newlines.
+     * Rejects whitespace-only names. Not {@code @NotBlank}: for {@code ""} that would fire alongside
+     * {@code @Size}; this lets {@code ""} through so it gets only the size message. {@code (?U)}:
+     * Unicode whitespace (non-breaking spaces too). {@code (?s)}: {@code .} also matches newlines.
      */
     static final String NOT_ONLY_WHITESPACE = "(?sU)|.*\\S.*";
 }

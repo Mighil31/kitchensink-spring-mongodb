@@ -18,8 +18,7 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: maven
-      # Unit tests + Testcontainers integration tests (Docker is available on the runner).
-      # The contract suite is opt-in (-Pcontract) and the perf project is separate, so neither runs here.
+      # Unit and Testcontainers tests. The contract suite (opt-in) and perf (separate) don't run here.
       - name: Build and test
         run: mvn -B verify
       - name: Coverage report
@@ -30,8 +29,7 @@ jobs:
           path: app/target/site/jacoco/
           if-no-files-found: ignore
 
-  # Parity gate: the black-box HTTP suite that ran against legacy, run against the new app
-  # (ADR 0008). The app runs as a plain jar on a fresh MongoDB, no dev profile, as in production.
+  # Parity gate (ADR 0008): the contract suite against the jar on a fresh MongoDB, no dev profile.
   contract-v2:
     runs-on: ubuntu-latest
     services:
@@ -51,8 +49,7 @@ jobs:
           cache: maven
       - name: Package the app
         run: mvn -B -pl app package -DskipTests
-      # The API needs HTTP Basic (ADR 0007). The app only lives for this job, so a random password
-      # made here is enough: no repository secret to manage. Masked so it never shows in the log.
+      # The app lives only for this job, so a random, masked password beats a repository secret.
       - name: API client password for this run
         run: |
           password=$(openssl rand -hex 24)

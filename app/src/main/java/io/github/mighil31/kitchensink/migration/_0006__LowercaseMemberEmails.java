@@ -18,21 +18,15 @@ import java.util.Locale;
 import org.bson.Document;
 
 /**
- * Gap B2: existing emails lower-cased, as the app now stores new ones, so the unique index on
- * {@code email} also covers addresses that differ only by case (ADR 0011).
+ * Lower-cases existing emails, as the app stores new ones (ADR 0011).
  *
  * <ul>
- *   <li>Done in Java, not with MongoDB's {@code $toLower}, which is only defined for ASCII; this
- *       way the result is exactly what the app writes ({@code toLowerCase(Locale.ROOT)}). The rule
- *       is copied here, not called from the app: a migration must keep doing what it did when it
- *       was written.
- *   <li>Two members whose emails differ only by case can't both keep theirs: the unique index
- *       rejects the second update. Those are left as they are, everything else is updated, and the
- *       change fails, naming only how many, never the addresses (personal data in logs). The app
- *       doesn't start until someone decides which member keeps the address; Flamingock then runs
- *       the change again, which is safe because lower-casing twice changes nothing.
- *   <li>Unordered bulk writes in batches, so one conflict doesn't stop the rest and a large
- *       collection isn't updated one round trip per document.
+ *   <li>In Java, not {@code $toLower} (ASCII only), so the result matches the app exactly. The rule
+ *       is copied, not called: a migration must keep doing what it did when it was written.
+ *   <li>Emails that differ only by case collide on the unique index. Those are skipped, the rest
+ *       updated, and the change fails with a count only (no addresses in logs). The app won't start
+ *       until someone resolves them; the rerun is safe, as lower-casing twice changes nothing.
+ *   <li>Unordered bulk writes, so one conflict doesn't stop the rest of the batch.
  * </ul>
  */
 @TargetSystem(id = FlamingockConfig.TARGET_SYSTEM)
@@ -67,7 +61,7 @@ public class _0006__LowercaseMemberEmails {
         }
     }
 
-    /** Returns how many updates the unique index rejected; any other write error is rethrown. */
+    /** How many updates the unique index rejected; any other write error is rethrown. */
     private static int write(MongoCollection<Document> members, List<UpdateOneModel<Document>> batch) {
         try {
             members.bulkWrite(batch, new BulkWriteOptions().ordered(false));

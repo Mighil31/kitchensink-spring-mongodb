@@ -26,22 +26,19 @@ services:
     build: ./app
     environment:
       MONGODB_URI: mongodb://${MONGO_APP_USER}:${MONGO_APP_PASSWORD}@mongo:27017/kitchensink?authSource=kitchensink
-      # The REST API's client (ADR 0007): HTTP Basic on /rest/**.
       KITCHENSINK_API_USERNAME: ${API_USER:?set in .env}
       KITCHENSINK_API_PASSWORD: ${API_PASSWORD:?set in .env}
-      # Local stack only: seeds John Smith (ADR 0005). Production runs without this profile.
+      # Seeds John Smith. Production runs without it.
       SPRING_PROFILES_ACTIVE: dev
     ports:
       - "127.0.0.1:8081:8081"
-      # Management port (metrics, full health). Published here for local use; in production only
-      # the monitoring system reaches it, never the gateway.
+      # Management port: published for local use only; in production only monitoring reaches it.
       - "127.0.0.1:9091:9091"
     depends_on:
       mongo:
         condition: service_healthy
 
-  # Optional: docker compose --profile observability up
-  # Prometheus scrapes the app's internal port; Grafana shows one dashboard (5 panels).
+  # Optional: docker compose --profile observability up   (Grafana: http://localhost:3000)
   prometheus:
     image: prom/prometheus:v3.1.0
     profiles: [observability]
@@ -56,7 +53,7 @@ services:
     image: grafana/grafana:11.4.0
     profiles: [observability]
     environment:
-      # Local only (bound to 127.0.0.1): open the dashboard without logging in, read-only.
+      # Local only: read-only access without logging in.
       GF_AUTH_ANONYMOUS_ENABLED: "true"
       GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
       GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/kitchensink.json

@@ -9,11 +9,8 @@ import io.flamingock.api.annotations.Rollback;
 import io.flamingock.api.annotations.TargetSystem;
 
 /**
- * Unique {@code email}: the database, not a check-then-insert, guarantees uniqueness (gap B1).
- *
- * <p>The index itself compares case-sensitively. Since the B2 fix the app stores emails
- * lower-cased and {@code _0006} lower-cased the existing ones, so in effect uniqueness ignores case,
- * without a collation (ADR 0011).
+ * Unique {@code email}. The index is case-sensitive; uniqueness ignores case because emails are
+ * stored lower-cased ({@code Member.normalizeEmail}, {@code _0006}), with no collation (ADR 0011).
  */
 @TargetSystem(id = FlamingockConfig.TARGET_SYSTEM)
 @Change(id = "members-email-unique-index", author = "kitchensink", transactional = false)

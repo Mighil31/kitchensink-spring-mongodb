@@ -13,20 +13,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
- * Errors that happen before any controller is chosen (unknown path, wrong method, unsupported
- * body or response type), so
- * {@link MemberApiExceptionHandler} never sees them. Under {@code /rest/} they become ProblemDetail
- * like every other API error (ADR 0003). Anywhere else the exception is rethrown and Spring's
- * default handling applies, so the UI keeps its HTML error page.
+ * Errors raised before a controller is chosen (unknown path, wrong method, unsupported media type),
+ * which {@link MemberApiExceptionHandler} never sees. Under {@code /rest/} they become ProblemDetail;
+ * elsewhere they are rethrown, so the UI keeps its HTML error page.
  */
 @RestControllerAdvice
 class ApiRoutingExceptionHandler {
 
-    /**
-     * Wrong method (405), body type the endpoint doesn't consume (415), or an {@code Accept} it can't
-     * produce (406). Spring's own ProblemDetail and headers are kept: {@code Allow} lists the
-     * supported methods, {@code Accept} the supported body types.
-     */
+    /** 405, 415 and 406, keeping Spring's own body and headers ({@code Allow}, {@code Accept}). */
     @ExceptionHandler({
         HttpRequestMethodNotSupportedException.class,
         HttpMediaTypeNotSupportedException.class,

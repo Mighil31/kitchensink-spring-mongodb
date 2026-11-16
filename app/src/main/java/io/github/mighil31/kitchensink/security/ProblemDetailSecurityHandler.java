@@ -16,9 +16,9 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
 
 /**
- * 401 and 403 on the API as RFC 9457 ProblemDetail (ADR 0003), like every other API error. These
- * happen in the security filters, before Spring MVC, so the controller advice never sees them. The
- * detail is generic: it never says whether the user or the password was wrong.
+ * 401 and 403 on the API as ProblemDetail (ADR 0003). They happen in the security filters, before
+ * Spring MVC, so the controller advice never sees them. The detail never says whether the user or
+ * the password was wrong.
  */
 class ProblemDetailSecurityHandler implements AuthenticationEntryPoint, AccessDeniedHandler {
 

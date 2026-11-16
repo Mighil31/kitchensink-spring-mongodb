@@ -13,9 +13,8 @@ import io.flamingock.api.annotations.TargetSystem;
 import org.springframework.context.annotation.Profile;
 
 /**
- * Legacy's {@code import.sql} row, for local development only (ADR 0005). Never runs without the
- * {@code dev} profile, so production starts empty. He keeps legacy id 0 as {@code legacyId}, the
- * one example of ADR 0002's mapping. Upsert by email so an existing row is left alone.
+ * Legacy's seed member, {@code dev} profile only, so production starts empty (ADR 0005). Upsert by
+ * email so an existing member is left alone.
  */
 @Profile("dev")
 @TargetSystem(id = FlamingockConfig.TARGET_SYSTEM)

@@ -19,8 +19,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
 
 /**
- * ADR 0007, option B. The REST API needs HTTP Basic; the UI stays public, as on legacy, with CSRF
- * protection on its form. Both get the same security headers.
+ * Two filter chains (ADR 0007): HTTP Basic on the REST API; the UI is public, with CSRF protection
+ * on its form. Both send the same security headers.
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(ApiClientProperties.class)
@@ -37,8 +37,8 @@ public class SecurityConfig {
     static final String PERMISSIONS_POLICY = "camera=(), microphone=(), geolocation=(), payment=()";
 
     /**
-     * Every endpoint, reads too: member data is personal data. Stateless (credentials on each
-     * request, no session cookie), so there is nothing for CSRF to abuse and it's off here.
+     * Reads too: member data is personal data. Stateless, with no session cookie, so CSRF protection
+     * is off. (Cross-site writes are still blocked: the API only accepts JSON, and there is no CORS.)
      */
     @Bean
     @Order(1)
@@ -56,7 +56,7 @@ public class SecurityConfig {
                 .build();
     }
 
-    /** The registration page, static files, Actuator health and the error page: open to everyone. */
+    /** The registration page, static files, the probes and the error page. */
     @Bean
     @Order(2)
     SecurityFilterChain webSecurity(HttpSecurity http) throws Exception {
@@ -65,10 +65,7 @@ public class SecurityConfig {
                 .build();
     }
 
-    /**
-     * On top of Spring Security's defaults (nosniff, X-Frame-Options DENY, no-cache, HSTS on HTTPS
-     * requests only).
-     */
+    /** Added to Spring Security's defaults (nosniff, X-Frame-Options, no-cache, HSTS over HTTPS). */
     private static void headers(HeadersConfigurer<HttpSecurity> headers) {
         headers.contentSecurityPolicy(csp -> csp.policyDirectives(CONTENT_SECURITY_POLICY))
                 .referrerPolicy(referrer -> referrer.policy(ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
@@ -82,13 +79,9 @@ public class SecurityConfig {
     }
 
     /**
-     * The single API client, held in memory. Real accounts are out of scope (ADR 0007).
-     *
-     * <p>A plain password is bcrypt-hashed here. One that already names its encoding ({@code
-     * {bcrypt}$2a$...}) is used as given, so production can hold only the hash. {@code {noop}...}
-     * (stored and compared as plain text) exists for one purpose: the performance attribution run,
-     * which keeps authentication on every request but without bcrypt, to measure what bcrypt
-     * costs (ADR 0010). It logs a warning, since it should never be seen anywhere else.
+     * The single API client, in memory (ADR 0007). A plain password is bcrypt-hashed here; a
+     * {@code {bcrypt}...} one is used as given, so production can hold only the hash. {@code
+     * {noop}...} is plain text, only for the performance run that measures bcrypt's cost (ADR 0010).
      */
     @Bean
     UserDetailsService apiClients(ApiClientProperties client, PasswordEncoder encoder) {
@@ -102,10 +95,9 @@ public class SecurityConfig {
                 .password(password)
                 .roles(API_CLIENT)
                 .build());
-        // Only the lookup is exposed. InMemoryUserDetailsManager is also a UserDetailsPasswordService,
-        // and Spring Security uses that to re-hash a password not stored in its preferred encoding
-        // after a successful login: {noop} would silently become bcrypt on the first request. The
-        // configured password must stay exactly as configured.
+        // Expose only the lookup. InMemoryUserDetailsManager is also a UserDetailsPasswordService, which
+        // Spring Security uses to re-hash non-bcrypt passwords after a login: {noop} would silently
+        // become bcrypt on the first request.
         return users::loadUserByUsername;
     }
 

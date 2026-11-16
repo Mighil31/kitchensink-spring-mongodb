@@ -11,12 +11,9 @@ import io.flamingock.api.annotations.TargetSystem;
 import org.bson.Document;
 
 /**
- * {@code {name: 1, _id: 1}} replaces {@code name_asc} (ADR 0013, gap A3). Names aren't unique, so
- * paging by name alone could repeat or skip members with the same name across page boundaries;
- * {@code _id} breaks the ties and the index serves the whole sort. Still no collation (ADR 0009).
- *
- * <p>The new index is created before the old one is dropped, so the sort is never without an index.
- * Both steps are allowed to the app's {@code readWrite} user.
+ * {@code {name: 1, _id: 1}} replaces {@code name_asc} (ADR 0013). Names aren't unique, so paging by
+ * name alone could repeat or skip members across pages; {@code _id} breaks ties. Created before the
+ * old one is dropped, so the sort always has an index.
  */
 @TargetSystem(id = FlamingockConfig.TARGET_SYSTEM)
 @Change(id = "members-name-id-index", author = "kitchensink", transactional = false)

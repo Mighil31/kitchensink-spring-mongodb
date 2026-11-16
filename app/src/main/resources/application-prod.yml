@@ -1,7 +1,6 @@
 # Production: behind a TLS-terminating proxy or ingress.
 server:
-  # Trust X-Forwarded-Proto from the proxy, so the app knows the request came in over HTTPS
-  # (Spring Security then sends HSTS). Only safe when the app is reachable through the proxy alone.
+  # Trust X-Forwarded-* (so HTTPS is detected and HSTS sent). Only safe if the proxy is the only way in.
   forward-headers-strategy: native
   servlet:
     session:
@@ -11,5 +10,5 @@ server:
 logging:
   structured:
     format:
-      # One JSON object per line (Elastic Common Schema) for the log pipeline; includes the requestId.
+      # JSON lines (Elastic Common Schema), requestId included.
       console: ecs

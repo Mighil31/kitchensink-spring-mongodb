@@ -12,24 +12,16 @@ import io.flamingock.api.annotations.TargetSystem;
 import org.bson.Document;
 
 /**
- * Creates {@code members} with a {@code $jsonSchema} validator: a server-side backstop for the
- * Bean Validation rules (ADR 0011).
+ * Creates {@code members} with a {@code $jsonSchema} validator, a backstop for writes that bypass
+ * the app (ADR 0011).
  *
- * <p>The validator is never stricter than the app layer, or a request the API accepts would fail
- * at write time as a 500. So it mirrors legacy's actual behaviour, quirks included:
+ * <p>It must never be stricter than the app's validation, or a request the API accepts would fail
+ * at write time as a 500. So it checks only what legacy enforced (types, lengths, no ASCII digits in
+ * names), which also lets migrated legacy data load. {@code maxLength} counts code points, Bean
+ * Validation UTF-16 units, so emoji make the validator looser, never stricter.
  *
- * <ul>
- *   <li>{@code name}: only ASCII 0-9 are banned (legacy accepts other digits, gap B19).
- *       {@code maxLength} counts code points, Bean Validation counts UTF-16 units, so the
- *       validator is looser for emoji, never stricter.
- *   <li>{@code email}: non-empty only; {@code @Email} is lenient and a copied regex would drift.
- *   <li>{@code phoneNumber}: length only, because legacy accepts {@code +123456789},
- *       {@code 1.23456789E9} and non-ASCII digits (gap B18).
- * </ul>
- *
- * <p>Created with the validator in one step so the app's {@code readWrite} user can run it;
- * {@code collMod} would need {@code dbAdmin}. Tighten later with a new change, never by editing
- * this one.
+ * <p>Created together with the collection because the app's {@code readWrite} user can't run
+ * {@code collMod} (that needs {@code dbAdmin}).
  */
 @TargetSystem(id = FlamingockConfig.TARGET_SYSTEM)
 @Change(id = "create-members-collection", author = "kitchensink", transactional = false)
