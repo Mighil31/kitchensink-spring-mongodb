@@ -24,7 +24,11 @@ public record MemberRequest(
         @Pattern(regexp = NOT_ONLY_WHITESPACE, message = "{jakarta.validation.constraints.NotBlank.message}")
         String name,
 
-        @NotNull @NotEmpty @Email String email,
+        @NotNull
+        @NotEmpty
+        @Email
+        @Pattern(regexp = EMAIL_DOMAIN, message = "{jakarta.validation.constraints.Email.message}")
+        String email,
 
         @NotNull
         @Size(min = 10, max = 12)
@@ -45,4 +49,13 @@ public record MemberRequest(
      * Unicode whitespace (non-breaking spaces too). {@code (?s)}: {@code .} also matches newlines.
      */
     static final String NOT_ONLY_WHITESPACE = "(?sU)|.*\\S.*";
+
+    /**
+     * The domain needs a dot and a final label of 2+ characters, so {@code a@gmail} and {@code
+     * a@b.c} are rejected (gap B12, ADR 0014); an IP literal ({@code a@[127.0.0.1]}) stays valid.
+     * {@code @Email} alone accepts dotless domains, as the RFC does. The message is {@code @Email}'s,
+     * so whichever of the two rules fails, the client sees the same text. {@code ""} passes, left to
+     * {@code @NotEmpty}.
+     */
+    static final String EMAIL_DOMAIN = "(?s)|.*@(?:\\[.*]|.+\\.[^.@]{2,})";
 }

@@ -9,7 +9,7 @@ JBoss app; a few were found later by the contract suite's generated edge cases (
 - **Priority:** P0 = must fix in the migration, P1 = should, P2 = nice to have or mention only.
 - **Status:** *Fixed* (in the new app, with a test where it changes behaviour), *Kept* (deliberately
   the same as legacy), *Not done* (out of scope; a next step).
-- The 18 that change what an API or UI client sees are on the scorecard with the test that proves each.
+- The 19 that change what an API or UI client sees are on the scorecard with the test that proves each.
 
 ## Correctness bugs
 
@@ -26,7 +26,7 @@ JBoss app; a few were found later by the contract suite's generated edge cases (
 | B9 | UI messages use the first user's locale for everyone (fixed at class load) | P1 | Fixed: per-request locale (`Accept-Language`) |
 | B10 | Unknown JSON fields are silently ignored | P2 | Kept: tolerant reader (ADR 0013) |
 | B11 | The name rule's message says "letters and spaces", but only digits are banned: `<b>bold</b>` accepted | P1 | Fixed: letters, spaces, `. ' -`; message matches (ADR 0013) |
-| B12 | `@Email` accepts `a@b` (no top-level domain) | P2 | Kept: valid by the RFC |
+| B12 | `@Email` accepts `a@b` (no top-level domain) | P2 | Fixed: the domain needs a dot (ADR 0014). The database validator still allows it |
 | B13 | Phone numbers: 10–12 digits, no country code or normalisation | P2 | Kept; E.164 is a next step |
 | B14 | Refreshing after submitting the form registers again | P1 | Fixed: Post/Redirect/Get |
 | B15 | Legacy's integration test fails on a second run (same data) | P1 | Fixed: the contract suite uses unique data per run |

@@ -127,6 +127,15 @@
       "verifiedBy": "MemberRestControllerTest.nameWithOtherCharactersIs400"
     },
     {
+      "id": "B12",
+      "change": "Emails without a top-level domain",
+      "legacy": "a@b and jane@gmail accepted (200)",
+      "new": "400: the domain needs a dot and a final label of 2+ characters",
+      "source": "Gap Analysis B12 · ADR 0014",
+      "status": "decided",
+      "verifiedBy": "MemberRestControllerTest.emailWithoutTopLevelDomainIs400"
+    },
+    {
       "id": "B19",
       "change": "Other scripts' digits and symbols in names",
       "legacy": "Ana١, Ana１, emoji and <b>bold</b> accepted (200)",

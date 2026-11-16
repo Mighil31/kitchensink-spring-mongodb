@@ -166,7 +166,7 @@ class MemberMigrationsIT {
                 "name:Ana١", // Arabic-Indic digit, gap B19
                 "name:😀😀😀😀😀😀😀😀😀😀😀😀", // 24 UTF-16 units, under @Size(max = 25)
                 "name:abcdefghijklmnopqrstuvwxy", // exactly 25
-                "email:a@b",
+                "email:a@b", // gap B12
                 "phoneNumber:+123456789", // gap B18
                 "phoneNumber:-123456789",
                 "phoneNumber:1.23456789E9",

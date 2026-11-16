@@ -88,8 +88,9 @@ class ValidationIT extends ContractTest {
 
     @Test
     void unusualEmail_isAccepted() {
-        // No top-level domain. Local part is random so reruns don't hit the duplicate check.
-        postExpectingCreated(memberWith("email", TestMembers.randomLetters(12) + "@b"));
+        // Plus tag and a subdomain. Local part is random so reruns don't hit the duplicate check.
+        // Not a@b: legacy accepts it, the new app doesn't (gap B12, tested in the app).
+        postExpectingCreated(memberWith("email", TestMembers.randomLetters(12) + "+tag@mail.example.co.uk"));
     }
 
     static Stream<Arguments> invalidPhones() {

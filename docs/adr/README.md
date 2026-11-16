@@ -18,6 +18,7 @@ Accepted ADRs are not edited; a changed decision gets a new ADR that supersedes 
 | [0011](0011-flamingock-wiring-and-members-schema.md) | Flamingock on the plain driver; `members` validator and index details | Accepted |
 | [0012](0012-drop-member-registered-event.md) | Don't port legacy's member-registered CDI event | Accepted |
 | [0013](0013-open-deviations-decided.md) | Remaining behaviour changes: ids, unknown fields, validation rules, paging | Accepted |
+| [0014](0014-email-needs-top-level-domain.md) | Emails need a dotted domain (`a@gmail` rejected) | Accepted |
 
 Template: Context · Decision · Consequences (and Options where the trade-off matters).
 Intentional behaviour changes are listed with their ADR on the [migration scorecard](../report/index.html).

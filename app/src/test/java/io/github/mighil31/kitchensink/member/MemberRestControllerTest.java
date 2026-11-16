@@ -281,6 +281,29 @@ class MemberRestControllerTest {
                 .isEqualTo(Map.of("phoneNumber", "must contain only the digits 0-9"));
     }
 
+    /** Gap B12: legacy's @Email accepted a domain without a dot or with a one-letter last label. */
+    @ParameterizedTest
+    @ValueSource(strings = {"jane@gmail", "jane@localhost", "jane@example.c", "jane@b"})
+    void emailWithoutTopLevelDomainIs400(String email) {
+        assertThat(post("""
+                        {"name": "Jane Doe", "email": "%s", "phoneNumber": "2125551234"}
+                        """.formatted(email)))
+                .hasStatus(HttpStatus.BAD_REQUEST)
+                .bodyJson()
+                .extractingPath("$.errors")
+                .isEqualTo(Map.of("email", "must be a well-formed email address"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"jane@example.com", "jane+tag@mail.example.co.uk", "jane@[127.0.0.1]", "jane@exämple.de"})
+    void emailWithTopLevelDomainIsAccepted(String email) {
+        given(registration.register(any())).willReturn(JANE);
+
+        assertThat(post("""
+                        {"name": "Jane Doe", "email": "%s", "phoneNumber": "2125551234"}
+                        """.formatted(email))).hasStatus(HttpStatus.CREATED);
+    }
+
     /**
      * Gap B16: legacy picked one of the broken rules at random. Now a fixed order decides (length
      * before content), so repeating the request always gives the same message. What legacy
