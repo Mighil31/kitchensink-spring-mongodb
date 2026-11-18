@@ -25,6 +25,9 @@ server:
       # in URLs (;jsessionid=...), where it leaks through logs and Referer headers.
       tracking-modes: cookie
       cookie:
+        # Not JSESSIONID: browsers share cookies across ports, so on localhost this app's /-path cookie
+        # was also sent to legacy on :8080, whose server then picked the wrong session (ViewExpiredException).
+        name: KITCHENSINK_SESSION
         http-only: true
         same-site: lax
 

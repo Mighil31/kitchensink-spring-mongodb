@@ -108,10 +108,12 @@ class KitchensinkApplicationIT {
                 HttpClient.newBuilder().cookieHandler(new CookieManager()).build();
 
         HttpResponse<String> page = browser.send(request("/").build(), HttpResponse.BodyHandlers.ofString());
-        assertThat(page.body()).doesNotContainIgnoringCase("jsessionid");
+        assertThat(page.body())
+                .doesNotContainIgnoringCase("jsessionid")
+                .doesNotContainIgnoringCase("kitchensink_session");
         assertThat(page.headers().allValues("Set-Cookie"))
-                .anySatisfy(
-                        cookie -> assertThat(cookie).startsWith("JSESSIONID=").contains("HttpOnly", "SameSite=Lax"));
+                .anySatisfy(cookie ->
+                        assertThat(cookie).startsWith("KITCHENSINK_SESSION=").contains("HttpOnly", "SameSite=Lax"));
         Matcher token = CSRF_INPUT.matcher(page.body());
         assertThat(token.find()).as("CSRF token in the form").isTrue();
 
@@ -126,8 +128,10 @@ class KitchensinkApplicationIT {
 
         assertThat(response.statusCode()).isEqualTo(302);
         assertThat(response.headers().firstValue("Location"))
-                .hasValueSatisfying(
-                        location -> assertThat(location).endsWith("/").doesNotContainIgnoringCase("jsessionid"));
+                .hasValueSatisfying(location -> assertThat(location)
+                        .endsWith("/")
+                        .doesNotContainIgnoringCase("jsessionid")
+                        .doesNotContainIgnoringCase("kitchensink_session"));
     }
 
     /** The real bcrypt check, end to end (ADR 0007). */
